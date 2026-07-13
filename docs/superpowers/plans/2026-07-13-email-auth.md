@@ -52,7 +52,7 @@ backend/app/
 **Files:**
 - Modify: `backend/pyproject.toml`
 
-- [ ] **Step 1: 添加依赖**
+- [x] **Step 1: 添加依赖**
 
 向 `backend/pyproject.toml` 的 `[project.dependencies]` 新增：
 
@@ -63,13 +63,13 @@ bcrypt>=4.0.0
 pydantic[email]>=2.0.0
 ```
 
-- [ ] **Step 2: 安装依赖**
+- [x] **Step 2: 安装依赖**
 
 ```bash
 cd backend && uv sync
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add backend/pyproject.toml backend/uv.lock
@@ -84,7 +84,7 @@ git commit -m "chore: add python-jose passlib bcrypt pydantic[email] dependencie
 - Modify: `backend/app/db/session.py`
 - Modify: `backend/app/main.py`
 
-- [ ] **Step 1: 创建 models 包**
+- [x] **Step 1: 创建 models 包**
 
 `backend/app/models/__init__.py`:
 ```python
@@ -116,7 +116,7 @@ class User(Base):
     )
 ```
 
-- [ ] **Step 2: 修改 db/session.py 导入 Base**
+- [x] **Step 2: 修改 db/session.py 导入 Base**
 
 `backend/app/db/session.py`:
 ```python
@@ -135,7 +135,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 ```
 
-- [ ] **Step 3: 在 main.py 添加启动建表**
+- [x] **Step 3: 在 main.py 添加启动建表**
 
 `backend/app/main.py`:
 ```python
@@ -172,7 +172,7 @@ app.include_router(web_auth_router, prefix="/api/v1/web")
 app.include_router(admin_auth_router, prefix="/api/v1/admin")
 ```
 
-- [ ] **Step 4: 验证模型导入**
+- [x] **Step 4: 验证模型导入**
 
 ```bash
 cd backend && uv run python -c "from app.models.user import User; print('OK')"
@@ -180,7 +180,7 @@ cd backend && uv run python -c "from app.models.user import User; print('OK')"
 
 Expected: `OK`
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add backend/app/models/ backend/app/db/session.py backend/app/main.py
@@ -193,7 +193,7 @@ git commit -m "feat: add User model with SQLAlchemy Base and auto table creation
 - Create: `backend/app/core/security.py`
 - Modify: `backend/app/core/config.py`
 
-- [ ] **Step 1: 在 config.py 添加 jwt_secret**
+- [x] **Step 1: 在 config.py 添加 jwt_secret**
 
 `backend/app/core/config.py`:
 ```python
@@ -210,7 +210,7 @@ class Settings(BaseSettings):
 settings = Settings()
 ```
 
-- [ ] **Step 2: 创建 security.py**
+- [x] **Step 2: 创建 security.py**
 
 `backend/app/core/security.py`:
 ```python
@@ -264,7 +264,7 @@ def clear_auth_cookie(response: Response) -> None:
     response.delete_cookie(key="token", path="/")
 ```
 
-- [ ] **Step 3: 验证 JWT 工具**
+- [x] **Step 3: 验证 JWT 工具**
 
 ```bash
 cd backend && uv run python -c "
@@ -277,7 +277,7 @@ print('OK')
 "
 ```
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add backend/app/core/security.py backend/app/core/config.py
@@ -293,7 +293,7 @@ git commit -m "feat: add password hashing, JWT creation/verification, and cookie
 **Files:**
 - Create: `backend/app/db/deps.py`
 
-- [ ] **Step 1: 创建 deps.py**
+- [x] **Step 1: 创建 deps.py**
 
 `backend/app/db/deps.py`:
 ```python
@@ -310,7 +310,7 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add backend/app/db/deps.py
@@ -325,7 +325,7 @@ git commit -m "feat: add get_db dependency for SQLAlchemy session injection"
 - Create: `backend/app/domain/auth/schemas.py`
 - Create: `backend/app/domain/auth/deps.py`
 
-- [ ] **Step 1: 创建 domain/auth/\_\_init\_\_.py — 注册/登录业务逻辑**
+- [x] **Step 1: 创建 domain/auth/\_\_init\_\_.py — 注册/登录业务逻辑**
 
 `backend/app/domain/__init__.py`:
 ```python
@@ -367,7 +367,7 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
     return user
 ```
 
-- [ ] **Step 2: 创建 Pydantic schemas**
+- [x] **Step 2: 创建 Pydantic schemas**
 
 `backend/app/domain/auth/schemas.py`:
 ```python
@@ -398,7 +398,7 @@ class AuthResponse(BaseModel):
     user: UserResponse
 ```
 
-- [ ] **Step 3: 创建认证依赖 deps.py**
+- [x] **Step 3: 创建认证依赖 deps.py**
 
 `backend/app/domain/auth/deps.py`:
 ```python
@@ -426,7 +426,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     return user
 ```
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add backend/app/domain/
@@ -443,7 +443,7 @@ git commit -m "feat: add auth domain layer with business logic, schemas, and aut
 - Create: `backend/app/api/web/__init__.py`
 - Create: `backend/app/api/web/auth.py`
 
-- [ ] **Step 1: 创建 Web auth 路由文件**
+- [x] **Step 1: 创建 Web auth 路由文件**
 
 `backend/app/api/__init__.py`:
 ```python
@@ -494,7 +494,7 @@ def me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add backend/app/api/web/
@@ -507,7 +507,7 @@ git commit -m "feat: add web auth routes (register/login/logout/me)"
 - Create: `backend/app/api/admin/__init__.py`
 - Create: `backend/app/api/admin/auth.py`
 
-- [ ] **Step 1: 创建 Admin auth 路由文件**
+- [x] **Step 1: 创建 Admin auth 路由文件**
 
 `backend/app/api/admin/__init__.py`:
 ```python
@@ -554,7 +554,7 @@ def me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add backend/app/api/admin/
@@ -566,7 +566,7 @@ git commit -m "feat: add admin auth routes (register/login/logout/me)"
 **Files:**
 - Create: `backend/tests/test_auth.py`
 
-- [ ] **Step 1: 创建测试文件**
+- [x] **Step 1: 创建测试文件**
 
 `backend/tests/test_auth.py`:
 ```python
@@ -679,7 +679,7 @@ def test_invalid_email() -> None:
     assert response.status_code == 422
 ```
 
-- [ ] **Step 2: 运行测试**
+- [x] **Step 2: 运行测试**
 
 ```bash
 cd backend && rm -f .data/ec-main.sqlite3 && uv run pytest tests/ -v
@@ -687,7 +687,7 @@ cd backend && rm -f .data/ec-main.sqlite3 && uv run pytest tests/ -v
 
 Expected: ALL PASS (test_health + test_auth)
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add backend/tests/test_auth.py
@@ -704,7 +704,7 @@ git commit -m "test: add auth API tests covering register, login, logout, me, er
 - Create: `packages/sdk/src/auth.ts`
 - Modify: `packages/sdk/src/index.ts`
 
-- [ ] **Step 1: 创建 auth.ts**
+- [x] **Step 1: 创建 auth.ts**
 
 `packages/sdk/src/auth.ts`:
 ```typescript
@@ -774,7 +774,7 @@ export function getMe(
 }
 ```
 
-- [ ] **Step 2: 在 index.ts 导出**
+- [x] **Step 2: 在 index.ts 导出**
 
 `packages/sdk/src/index.ts`:
 ```typescript
@@ -786,7 +786,7 @@ export { register, login, logout, getMe } from "./auth";
 export type { UserResponse, AuthResponse, RegisterRequest, LoginRequest } from "./auth";
 ```
 
-- [ ] **Step 3: TypeScript 编译检查**
+- [x] **Step 3: TypeScript 编译检查**
 
 ```bash
 pnpm exec tsc --noEmit -p packages/sdk/tsconfig.json
@@ -794,7 +794,7 @@ pnpm exec tsc --noEmit -p packages/sdk/tsconfig.json
 
 Expected: No errors
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add packages/sdk/src/auth.ts packages/sdk/src/index.ts
@@ -810,7 +810,7 @@ git commit -m "feat: add auth methods to SDK"
 **Files:**
 - Create: `apps/web/app/register/page.tsx`
 
-- [ ] **Step 1: 创建注册页面**
+- [x] **Step 1: 创建注册页面**
 
 `apps/web/app/register/page.tsx`:
 ```typescript
@@ -879,7 +879,7 @@ export default function RegisterPage() {
 }
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add apps/web/app/register/page.tsx
@@ -891,7 +891,7 @@ git commit -m "feat: add web buyer registration page"
 **Files:**
 - Create: `apps/web/app/login/page.tsx`
 
-- [ ] **Step 1: 创建登录页面**
+- [x] **Step 1: 创建登录页面**
 
 `apps/web/app/login/page.tsx`:
 ```typescript
@@ -960,7 +960,7 @@ export default function LoginPage() {
 }
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add apps/web/app/login/page.tsx
@@ -972,7 +972,7 @@ git commit -m "feat: add web buyer login page"
 **Files:**
 - Create: `apps/admin/app/register/page.tsx`
 
-- [ ] **Step 1: 创建注册页面**
+- [x] **Step 1: 创建注册页面**
 
 `apps/admin/app/register/page.tsx`:
 ```typescript
@@ -1041,7 +1041,7 @@ export default function AdminRegisterPage() {
 }
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add apps/admin/app/register/page.tsx
@@ -1053,7 +1053,7 @@ git commit -m "feat: add admin registration page"
 **Files:**
 - Create: `apps/admin/app/login/page.tsx`
 
-- [ ] **Step 1: 创建登录页面**
+- [x] **Step 1: 创建登录页面**
 
 `apps/admin/app/login/page.tsx`:
 ```typescript
@@ -1122,7 +1122,7 @@ export default function AdminLoginPage() {
 }
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add apps/admin/app/login/page.tsx
@@ -1131,7 +1131,7 @@ git commit -m "feat: add admin login page"
 
 ### Task 5.5: 前端编译验证
 
-- [ ] **Step 1: TypeScript 编译检查**
+- [x] **Step 1: TypeScript 编译检查**
 
 ```bash
 pnpm exec tsc --noEmit -p apps/web/tsconfig.json && pnpm exec tsc --noEmit -p apps/admin/tsconfig.json
@@ -1139,7 +1139,7 @@ pnpm exec tsc --noEmit -p apps/web/tsconfig.json && pnpm exec tsc --noEmit -p ap
 
 Expected: No errors
 
-- [ ] **Step 2: 确认已提交前端代码**
+- [x] **Step 2: 确认已提交前端代码**
 
 ```bash
 git status
@@ -1151,7 +1151,7 @@ git status
 
 ### Task 6.1: 全量后端测试
 
-- [ ] **Step 1: 运行全部测试**
+- [x] **Step 1: 运行全部测试**
 
 ```bash
 cd backend && rm -f .data/ec-main.sqlite3 && uv run pytest tests/ -v
@@ -1161,7 +1161,7 @@ Expected: ALL PASS
 
 ### Task 6.2: 端到端验证
 
-- [ ] **Step 1: 启动后端并手动验证**
+- [x] **Step 1: 启动后端并手动验证**
 
 ```bash
 cd backend && uv run uvicorn app.main:app --port 8000 &
