@@ -1,0 +1,15 @@
+{
+  "name": "ec-main",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @ec/web dev",
+    "dev:admin": "pnpm --filter @ec/admin dev",
+    "dev:backend": "pnpm --filter @ec/backend dev",
+    "check": "pnpm -r check",
+    "check:backend": "pnpm --filter @ec/backend check"
+  },
+  "dependencies": {
+    "@fission-ai/openspec": "^1.5.0"
+  }
+}

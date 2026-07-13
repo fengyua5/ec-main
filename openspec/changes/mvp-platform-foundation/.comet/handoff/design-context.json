@@ -1,0 +1,14 @@
+{
+  "change": "mvp-platform-foundation",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "ea07e4d8a5cb1b7ffeb0eafd39c50daab3600b063e527c64d137af5d071fcb63",
+  "files": [
+    { "path": "openspec/changes/mvp-platform-foundation/proposal.md", "sha256": "90dcd570624d02039f9eefbee9b222af6e44247536d93b6662df304d6fda5137" },
+    { "path": "openspec/changes/mvp-platform-foundation/design.md", "sha256": "5eec9cc5decaf4d6623816cd9e09dab2c923d21e5fcc9c1d63eb775dc12975b1" },
+    { "path": "openspec/changes/mvp-platform-foundation/tasks.md", "sha256": "0af0b6037b3121787b306356c1303ca99d557848d13220016eb111c16cb5af8c" },
+    { "path": "openspec/changes/mvp-platform-foundation/specs/platform-foundation/spec.md", "sha256": "f4f16a229005c2111f59f31e090ac29adf24b08737978813a62d9277a701203b" }
+  ]
+}
