@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.api.v1.router import router as api_v1_router
+from app.api.web.auth import router as web_auth_router
+from app.api.admin.auth import router as admin_auth_router
 from app.core.config import settings
+from app.models.user import Base
+from app.db.session import engine
 
 app = FastAPI(title="EC Main API")
 
@@ -15,9 +17,15 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+def on_startup() -> None:
+    Base.metadata.create_all(bind=engine)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "ec-backend"}
 
 
-app.include_router(api_v1_router, prefix="/api/v1")
+app.include_router(web_auth_router, prefix="/api/v1/web")
+app.include_router(admin_auth_router, prefix="/api/v1/admin")
