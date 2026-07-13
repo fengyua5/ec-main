@@ -18,24 +18,24 @@
 
 ## 4. FastAPI 服务基线
 
-- [ ] 4.1 初始化 `backend` FastAPI 应用结构
-- [ ] 4.2 实现 `/health` 或等价健康检查端点
-- [ ] 4.3 定义 `/api/v1` API 前缀、配置加载方式和 CORS 本地开发策略
+- [x] 4.1 初始化 `backend` FastAPI 应用结构
+- [x] 4.2 实现 `/health` 或等价健康检查端点
+- [x] 4.3 定义 `/api/v1` API 前缀、配置加载方式和 CORS 本地开发策略
 
 ## 5. SQLite 持久化基线
 
-- [ ] 5.1 定义 SQLite 数据库路径环境变量和本地默认值
-- [ ] 5.2 建立数据库连接/session 管理基础代码
-- [ ] 5.3 建立 schema 迁移或可重复初始化策略，并记录后续业务表接入方式
+- [x] 5.1 定义 SQLite 数据库路径环境变量和本地默认值
+- [x] 5.2 建立数据库连接/session 管理基础代码
+- [x] 5.3 建立 schema 迁移或可重复初始化策略，并记录后续业务表接入方式
 
 ## 6. 集成与文档
 
-- [ ] 6.1 让 web/admin 通过 `packages/sdk` 调用 API health check
-- [ ] 6.2 编写本地开发文档，说明安装、启动、环境变量和目录职责
-- [ ] 6.3 记录后续 changes 的依赖顺序：商品与后台、登录账号、购物车结算订单、AI 智能客服
+- [x] 6.1 让 web/admin 通过 `packages/sdk` 调用 API health check
+- [x] 6.2 编写本地开发文档，说明安装、启动、环境变量和目录职责
+- [x] 6.3 记录后续 changes 的依赖顺序：商品与后台、登录账号、购物车结算订单、AI 智能客服
 
 ## 7. 验证
 
-- [ ] 7.1 验证 `pnpm` workspace 能识别 apps 和 packages
-- [ ] 7.2 验证 web/admin/backend 可以按文档启动或通过基础检查
-- [ ] 7.3 验证 API health check 和前端 SDK health check 调用路径可用
+- [x] 7.1 验证 `pnpm` workspace 能识别 apps 和 packages
+- [x] 7.2 验证 web/admin/backend 可以按文档启动或通过基础检查
+- [x] 7.3 验证 API health check 和前端 SDK health check 调用路径可用

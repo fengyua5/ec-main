@@ -10,6 +10,6 @@
     "check:backend": "pnpm --filter @ec/backend check"
   },
   "dependencies": {
-    "@fission-ai/openspec": "^1.5.0"
+    "@fission-ai/openspec": "^1.6.0"
   }
 }

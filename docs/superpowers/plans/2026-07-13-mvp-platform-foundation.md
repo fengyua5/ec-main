@@ -503,7 +503,7 @@ Expected: 两个应用 TypeScript 检查通过；如 Next.js 16 当前 lint 命�
 - Produces: `settings.database_url` from env `DATABASE_URL` with local SQLite default.
 - Produces: backend root scripts `dev` and `check` callable via root `pnpm`.
 
-- [ ] **Step 1: 创建 backend package script wrapper**
+- [x] **Step 1: 创建 backend package script wrapper**
 
 创建 `backend/package.json`：
 
@@ -519,7 +519,7 @@ Expected: 两个应用 TypeScript 检查通过；如 Next.js 16 当前 lint 命�
 }
 ```
 
-- [ ] **Step 2: 创建 Python 项目配置**
+- [x] **Step 2: 创建 Python 项目配置**
 
 创建 `backend/pyproject.toml`：
 
@@ -546,7 +546,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 ```
 
-- [ ] **Step 3: 创建配置加载**
+- [x] **Step 3: 创建配置加载**
 
 创建 `backend/app/core/config.py`：
 
@@ -564,7 +564,7 @@ class Settings(BaseSettings):
 settings = Settings()
 ```
 
-- [ ] **Step 4: 创建数据库 session 基线**
+- [x] **Step 4: 创建数据库 session 基线**
 
 创建 `backend/app/db/session.py`：
 
@@ -585,7 +585,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 ```
 
-- [ ] **Step 5: 创建 API router**
+- [x] **Step 5: 创建 API router**
 
 创建 `backend/app/api/v1/router.py`：
 
@@ -595,7 +595,7 @@ from fastapi import APIRouter
 router = APIRouter()
 ```
 
-- [ ] **Step 6: 创建 FastAPI app 和 health check**
+- [x] **Step 6: 创建 FastAPI app 和 health check**
 
 创建 `backend/app/main.py`：
 
@@ -625,7 +625,7 @@ def health() -> dict[str, str]:
 app.include_router(api_v1_router, prefix="/api/v1")
 ```
 
-- [ ] **Step 7: 创建 health 测试**
+- [x] **Step 7: 创建 health 测试**
 
 创建 `backend/tests/test_health.py`：
 
@@ -644,11 +644,11 @@ def test_health_check() -> None:
     assert response.json() == {"status": "ok", "service": "ec-backend"}
 ```
 
-- [ ] **Step 8: 创建 Python package init 文件**
+- [x] **Step 8: 创建 Python package init 文件**
 
 创建空文件：`backend/app/__init__.py`、`backend/app/core/__init__.py`、`backend/app/db/__init__.py`、`backend/app/api/__init__.py`、`backend/app/api/v1/__init__.py`。
 
-- [ ] **Step 9: 验证 backend**
+- [x] **Step 9: 验证 backend**
 
 Run:
 
@@ -659,7 +659,7 @@ python3.11 -m pytest
 
 Expected: `test_health_check` 通过。
 
-- [ ] **Step 10: 更新 OpenSpec 任务**
+- [x] **Step 10: 更新 OpenSpec 任务**
 
 勾选 `tasks.md` 中 4.1、4.2、4.3、5.1、5.2。
 
@@ -678,7 +678,7 @@ Expected: `test_health_check` 通过。
 - Produces: 文档化环境变量 `DATABASE_URL`、`NEXT_PUBLIC_API_BASE_URL`。
 - Produces: 后续 changes 的依赖顺序说明。
 
-- [ ] **Step 1: 创建 backend env 示例**
+- [x] **Step 1: 创建 backend env 示例**
 
 创建 `backend/.env.example`：
 
@@ -686,7 +686,7 @@ Expected: `test_health_check` 通过。
 DATABASE_URL=sqlite:///./.data/ec-main.sqlite3
 ```
 
-- [ ] **Step 2: 创建前端 env 示例**
+- [x] **Step 2: 创建前端 env 示例**
 
 创建 `apps/web/.env.example` 和 `apps/admin/.env.example`：
 
@@ -694,7 +694,7 @@ DATABASE_URL=sqlite:///./.data/ec-main.sqlite3
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-- [ ] **Step 3: 创建 SQLite 文档**
+- [x] **Step 3: 创建 SQLite 文档**
 
 创建 `infra/sqlite/README.md`，说明：
 
@@ -706,7 +706,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 后续业务表必须通过迁移或可重复初始化机制演进，避免散落一次性 SQL 脚本。商品、用户、购物车、订单和 AI 客服上下文相关表应在各自 OpenSpec change 中定义。
 ```
 
-- [ ] **Step 4: 创建根 README**
+- [x] **Step 4: 创建根 README**
 
 创建或更新 `README.md`，至少包含：
 
@@ -738,9 +738,9 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 4. AI 智能客服。
 ```
 
-- [ ] **Step 5: 更新 OpenSpec 任务**
+- [x] **Step 5: 更新 OpenSpec 任务**
 
-勾选 `tasks.md` 中 5.3、6.2、6.3。
+勾选 `tasks.md` 中 5.3、6.1、6.2、6.3。
 
 ---
 
@@ -754,7 +754,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - Consumes: 所有前序任务产物。
 - Produces: 中文验证报告。
 
-- [ ] **Step 1: 安装依赖**
+- [x] **Step 1: 安装依赖**
 
 Run:
 
@@ -764,7 +764,7 @@ pnpm install
 
 Expected: lockfile 更新且 workspace dependencies 可解析。
 
-- [ ] **Step 2: 验证 workspace**
+- [x] **Step 2: 验证 workspace**
 
 Run:
 
@@ -774,7 +774,7 @@ pnpm -r list --depth -1
 
 Expected: 输出包含 `@ec/web`、`@ec/admin`、`@ec/backend`、`@ec/ui`、`@ec/sdk`、`@ec/config`。
 
-- [ ] **Step 3: 验证 TypeScript packages 和前端 app**
+- [x] **Step 3: 验证 TypeScript packages 和前端 app**
 
 Run:
 
@@ -787,7 +787,7 @@ pnpm --filter @ec/admin check
 
 Expected: 所有检查通过。
 
-- [ ] **Step 4: 验证 backend**
+- [x] **Step 4: 验证 backend**
 
 Run:
 
@@ -798,15 +798,15 @@ python3.11 -m pytest
 
 Expected: health check 测试通过。
 
-- [ ] **Step 5: 记录验证报告**
+- [x] **Step 5: 记录验证报告**
 
 创建 `docs/superpowers/reports/2026-07-13-mvp-platform-foundation-verification.md`，记录每条命令、结果和任何已知限制。报告必须使用中文。
 
-- [ ] **Step 6: 更新 OpenSpec 任务**
+- [x] **Step 6: 更新 OpenSpec 任务**
 
 勾选 `tasks.md` 中 6.1、7.1、7.2、7.3。
 
-- [ ] **Step 7: 最终确认**
+- [x] **Step 7: 最终确认**
 
 Run:
 

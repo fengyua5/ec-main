@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@fission-ai/openspec':
-        specifier: ^1.5.0
+        specifier: ^1.6.0
         version: 1.6.0(@types/node@22.20.1)
 
   apps/admin:
@@ -85,6 +85,8 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+
+  backend: {}
 
   packages/config: {}
 

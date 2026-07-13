@@ -1,12 +1,12 @@
 workflow: full
-phase: build
+phase: verify
 context_compression: off
 build_mode: executing-plans
 build_pause: null
 subagent_dispatch: null
 tdd_mode: tdd
 isolation: branch
-verify_mode: null
+verify_mode: full
 auto_transition: true
 base_ref: null
 design_doc: docs/superpowers/specs/2026-07-10-mvp-platform-foundation-design.md
@@ -19,3 +19,4 @@ verified_at: null
 archived: false
 handoff_context: openspec/changes/mvp-platform-foundation/.comet/handoff/design-context.json
 handoff_hash: ea07e4d8a5cb1b7ffeb0eafd39c50daab3600b063e527c64d137af5d071fcb63
+build_command: pnpm -r check

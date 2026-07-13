@@ -16,3 +16,7 @@ backend/.data/
 
 # Codex/OpenSpec local tooling caches
 .codegraph/
+.codex/
+.agent/
+.agents/
+.pnpm-store/
