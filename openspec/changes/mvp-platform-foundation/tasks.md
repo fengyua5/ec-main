@@ -8,13 +8,13 @@
 
 - [ ] 2.1 初始化 `apps/web` 为 Next.js 16 + Tailwind 买家端应用，并提供基础首页
 - [ ] 2.2 初始化 `apps/admin` 为 Next.js 16 + Tailwind Admin 应用，并提供基础后台入口页
-- [ ] 2.3 配置 web/admin 复用共享 TypeScript、Tailwind 或 lint 配置
+- [x] 2.3 配置 web/admin 复用共享 TypeScript、Tailwind 或 lint 配置
 
 ## 3. 共享 Packages
 
-- [ ] 3.1 创建 `packages/ui`，提供至少一个可被 web/admin 引用的基础 UI primitive
+- [x] 3.1 创建 `packages/ui`，提供至少一个可被 web/admin 引用的基础 UI primitive
 - [ ] 3.2 创建 `packages/sdk`，封装 API base URL 和 health check 调用
-- [ ] 3.3 创建 `packages/config`，承载共享 TypeScript/Tailwind/lint 配置或配置约定
+- [x] 3.3 创建 `packages/config`，承载共享 TypeScript/Tailwind/lint 配置或配置约定
 
 ## 4. FastAPI 服务基线
 

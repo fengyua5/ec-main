@@ -123,7 +123,7 @@ Expected: 命令能运行；在后续任务创建具体 package 后，应能列�
 - Produces: `@ec/ui` export `Button`
 - Consumes: 根 workspace。
 
-- [ ] **Step 1: 创建共享 config package**
+- [x] **Step 1: 创建共享 config package**
 
 创建 `packages/config/package.json`：
 
@@ -139,7 +139,7 @@ Expected: 命令能运行；在后续任务创建具体 package 后，应能列�
 }
 ```
 
-- [ ] **Step 2: 创建基础 TypeScript 配置**
+- [x] **Step 2: 创建基础 TypeScript 配置**
 
 创建 `packages/config/tsconfig/base.json`：
 
@@ -162,7 +162,7 @@ Expected: 命令能运行；在后续任务创建具体 package 后，应能列�
 }
 ```
 
-- [ ] **Step 3: 创建共享 Tailwind 配置约定**
+- [x] **Step 3: 创建共享 Tailwind 配置约定**
 
 创建 `packages/config/tailwind/base.ts`：
 
@@ -177,7 +177,7 @@ export const baseTailwindConfig = {
 } satisfies Partial<Config>;
 ```
 
-- [ ] **Step 4: 创建 UI package**
+- [x] **Step 4: 创建 UI package**
 
 创建 `packages/ui/package.json`：
 
@@ -199,6 +199,7 @@ export const baseTailwindConfig = {
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@ec/config": "workspace:*",
     "typescript": "^5.7.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0"
@@ -206,7 +207,7 @@ export const baseTailwindConfig = {
 }
 ```
 
-- [ ] **Step 5: 创建 Button primitive**
+- [x] **Step 5: 创建 Button primitive**
 
 创建 `packages/ui/src/button.tsx`：
 
@@ -233,7 +234,7 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
 }
 ```
 
-- [ ] **Step 6: 导出 UI primitive**
+- [x] **Step 6: 导出 UI primitive**
 
 创建 `packages/ui/src/index.ts`：
 
@@ -242,7 +243,7 @@ export { Button } from "./button";
 export type { ButtonProps } from "./button";
 ```
 
-- [ ] **Step 7: 创建 UI tsconfig**
+- [x] **Step 7: 创建 UI tsconfig**
 
 创建 `packages/ui/tsconfig.json`：
 
@@ -253,7 +254,7 @@ export type { ButtonProps } from "./button";
 }
 ```
 
-- [ ] **Step 8: 验证共享 packages**
+- [x] **Step 8: 验证共享 packages**
 
 Run:
 
@@ -263,7 +264,7 @@ pnpm --filter @ec/ui check
 
 Expected: TypeScript 检查通过。
 
-- [ ] **Step 9: 更新 OpenSpec 任务**
+- [x] **Step 9: 更新 OpenSpec 任务**
 
 勾选 `tasks.md` 中 2.3、3.1、3.3。
 
