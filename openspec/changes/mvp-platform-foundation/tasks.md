@@ -6,8 +6,8 @@
 
 ## 2. 前端应用骨架
 
-- [ ] 2.1 初始化 `apps/web` 为 Next.js 16 + Tailwind 买家端应用，并提供基础首页
-- [ ] 2.2 初始化 `apps/admin` 为 Next.js 16 + Tailwind Admin 应用，并提供基础后台入口页
+- [x] 2.1 初始化 `apps/web` 为 Next.js 16 + Tailwind 买家端应用，并提供基础首页
+- [x] 2.2 初始化 `apps/admin` 为 Next.js 16 + Tailwind Admin 应用，并提供基础后台入口页
 - [x] 2.3 配置 web/admin 复用共享 TypeScript、Tailwind 或 lint 配置
 
 ## 3. 共享 Packages

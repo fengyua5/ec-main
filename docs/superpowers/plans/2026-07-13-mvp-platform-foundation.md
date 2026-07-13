@@ -412,7 +412,7 @@ Expected: TypeScript 检查通过。
 - Consumes: `@ec/sdk` createApiClient/checkHealth in a server component or utility path.
 - Produces: `@ec/web` and `@ec/admin` apps with `dev` and `check` scripts.
 
-- [ ] **Step 1: 创建 web package**
+- [x] **Step 1: 创建 web package**
 
 创建 `apps/web/package.json`，依赖 Next.js 16、React 19、Tailwind 和共享包：
 
@@ -445,27 +445,27 @@ Expected: TypeScript 检查通过。
 }
 ```
 
-- [ ] **Step 2: 创建 web 页面**
+- [x] **Step 2: 创建 web 页面**
 
 `apps/web/app/page.tsx` 使用 `Button` 并显示买家端 shell。页面只展示底座状态，不实现商品业务。
 
-- [ ] **Step 3: 创建 web layout、CSS 和配置**
+- [x] **Step 3: 创建 web layout、CSS 和配置**
 
 添加 `layout.tsx`、`globals.css`、`next.config.ts`、`postcss.config.mjs`、`tsconfig.json`，确保 `tsconfig` extends `@ec/config/tsconfig/base.json`。
 
-- [ ] **Step 4: 创建 admin package**
+- [x] **Step 4: 创建 admin package**
 
 创建 `apps/admin/package.json`，结构与 web 类似，但 `dev` 端口使用 3001，package name 为 `@ec/admin`。
 
-- [ ] **Step 5: 创建 admin 页面**
+- [x] **Step 5: 创建 admin 页面**
 
 `apps/admin/app/page.tsx` 使用 `Button` 并显示 Admin shell。页面只展示后台入口，不实现商品维护业务。
 
-- [ ] **Step 6: 创建 admin layout、CSS 和配置**
+- [x] **Step 6: 创建 admin layout、CSS 和配置**
 
 添加 `layout.tsx`、`globals.css`、`next.config.ts`、`postcss.config.mjs`、`tsconfig.json`，确保与 web 共用配置模式。
 
-- [ ] **Step 7: 验证前端应用**
+- [x] **Step 7: 验证前端应用**
 
 Run:
 
@@ -476,7 +476,7 @@ pnpm --filter @ec/admin check
 
 Expected: 两个应用 TypeScript 检查通过；如 Next.js 16 当前 lint 命令不可用，保留 `tsc --noEmit` 作为基础检查。
 
-- [ ] **Step 8: 更新 OpenSpec 任务**
+- [x] **Step 8: 更新 OpenSpec 任务**
 
 勾选 `tasks.md` 中 2.1、2.2。
 
