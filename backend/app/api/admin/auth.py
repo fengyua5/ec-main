@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.domain.auth import register_user, authenticate_user
@@ -21,6 +21,8 @@ def register(req: RegisterRequest, response: Response, db: Session = Depends(get
 @router.post("/login", response_model=AuthResponse)
 def login(req: LoginRequest, response: Response, db: Session = Depends(get_db)):
     user = authenticate_user(db, req.email, req.password)
+    if user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="无权访问管理后台")
     token = create_access_token({"sub": str(user.id), "email": user.email, "role": user.role})
     set_auth_cookie(response, token)
     return AuthResponse(user=UserResponse.model_validate(user))

@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.models.user import Base
@@ -6,6 +7,14 @@ from app.db.session import engine
 Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _clean_db() -> None:
+    with engine.begin() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            conn.execute(table.delete())
+
 
 
 def test_register_success() -> None:
@@ -95,12 +104,28 @@ def test_admin_register() -> None:
 
 
 def test_admin_login() -> None:
+    client.post("/api/v1/admin/auth/register", json={
+        "email": "admin@example.com",
+        "password": "admin123",
+    })
     response = client.post("/api/v1/admin/auth/login", json={
         "email": "admin@example.com",
         "password": "admin123",
     })
     assert response.status_code == 200
     assert response.json()["user"]["role"] == "admin"
+
+
+def test_admin_login_rejects_buyer() -> None:
+    client.post("/api/v1/web/auth/register", json={
+        "email": "buyer@example.com",
+        "password": "password123",
+    })
+    response = client.post("/api/v1/admin/auth/login", json={
+        "email": "buyer@example.com",
+        "password": "password123",
+    })
+    assert response.status_code == 401
 
 
 def test_invalid_email() -> None:
