@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.web.auth import router as web_auth_router
@@ -6,7 +8,14 @@ from app.core.config import settings
 from app.models.user import Base
 from app.db.session import engine
 
-app = FastAPI(title="EC Main API")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title="EC Main API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,11 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/health")
