@@ -1,7 +1,7 @@
 workflow: full
 phase: build
-build_command: cd backend && uv run pytest tests/ -q
-verify_command: cd backend && uv run pytest tests/ -v
+build_command: backend/pytest.sh
+verify_command: backend/pytest.sh
 context_compression: off
 build_mode: subagent-driven-development
 build_pause: null
