@@ -284,7 +284,7 @@ Expected: TypeScript 检查通过。
 - Produces: `checkHealth(client: ApiClient): Promise<HealthResponse>`
 - Consumes: backend `/health` endpoint。
 
-- [ ] **Step 1: 创建 SDK package**
+- [x] **Step 1: 创建 SDK package**
 
 创建 `packages/sdk/package.json`：
 
@@ -306,7 +306,7 @@ Expected: TypeScript 检查通过。
 }
 ```
 
-- [ ] **Step 2: 创建 API client**
+- [x] **Step 2: 创建 API client**
 
 创建 `packages/sdk/src/client.ts`：
 
@@ -334,7 +334,7 @@ export function createApiClient(options: { baseUrl: string }): ApiClient {
 }
 ```
 
-- [ ] **Step 3: 创建 health check 方法**
+- [x] **Step 3: 创建 health check 方法**
 
 创建 `packages/sdk/src/health.ts`：
 
@@ -351,7 +351,7 @@ export function checkHealth(client: ApiClient): Promise<HealthResponse> {
 }
 ```
 
-- [ ] **Step 4: 导出 SDK 接口**
+- [x] **Step 4: 导出 SDK 接口**
 
 创建 `packages/sdk/src/index.ts`：
 
@@ -362,7 +362,7 @@ export { checkHealth } from "./health";
 export type { HealthResponse } from "./health";
 ```
 
-- [ ] **Step 5: 创建 SDK tsconfig**
+- [x] **Step 5: 创建 SDK tsconfig**
 
 创建 `packages/sdk/tsconfig.json`：
 
@@ -373,7 +373,7 @@ export type { HealthResponse } from "./health";
 }
 ```
 
-- [ ] **Step 6: 验证 SDK**
+- [x] **Step 6: 验证 SDK**
 
 Run:
 
@@ -383,7 +383,7 @@ pnpm --filter @ec/sdk check
 
 Expected: TypeScript 检查通过。
 
-- [ ] **Step 7: 更新 OpenSpec 任务**
+- [x] **Step 7: 更新 OpenSpec 任务**
 
 勾选 `tasks.md` 中 3.2。
 

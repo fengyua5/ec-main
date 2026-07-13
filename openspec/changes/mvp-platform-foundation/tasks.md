@@ -13,7 +13,7 @@
 ## 3. 共享 Packages
 
 - [x] 3.1 创建 `packages/ui`，提供至少一个可被 web/admin 引用的基础 UI primitive
-- [ ] 3.2 创建 `packages/sdk`，封装 API base URL 和 health check 调用
+- [x] 3.2 创建 `packages/sdk`，封装 API base URL 和 health check 调用
 - [x] 3.3 创建 `packages/config`，承载共享 TypeScript/Tailwind/lint 配置或配置约定
 
 ## 4. FastAPI 服务基线

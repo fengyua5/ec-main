@@ -14,6 +14,15 @@ importers:
 
   packages/config: {}
 
+  packages/sdk:
+    devDependencies:
+      '@ec/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
   packages/ui:
     dependencies:
       clsx:
