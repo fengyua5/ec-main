@@ -26,7 +26,7 @@ export function ChatWindow({ conversationId, onClose }: ChatWindowProps) {
   useEffect(() => {
     setLoading(true);
     getAdminMessages(client, conversationId)
-      .then(setMessages)
+      .then((res) => setMessages(res.messages))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [conversationId]);
@@ -41,8 +41,8 @@ export function ChatWindow({ conversationId, onClose }: ChatWindowProps) {
     setSending(true);
     setInput("");
     try {
-      const msg = await replyToConversation(client, conversationId, content);
-      setMessages((prev) => [...prev, msg]);
+      const res = await replyToConversation(client, conversationId, content);
+      setMessages((prev) => [...prev, res.message]);
     } catch {
       // ignore
     } finally {
@@ -81,12 +81,12 @@ export function ChatWindow({ conversationId, onClose }: ChatWindowProps) {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.sender === "buyer" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {(() => {
                     const s = msg.sender;
                     const bubbleClass =
-                      s === "buyer"
+                      s === "user"
                         ? "bg-blue-500 text-white rounded-br-sm"
                         : s === "admin"
                           ? "bg-green-50 text-foreground rounded-bl-sm border border-green-200"

@@ -1,6 +1,9 @@
+import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 from fastapi import FastAPI
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.web.ai import router as web_ai_router
 from app.api.web.auth import router as web_auth_router

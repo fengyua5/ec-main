@@ -11,9 +11,9 @@ export type Conversation = {
 export type Message = {
   id: number;
   conversation_id: number;
-  sender: "buyer" | "ai" | "admin";
+  sender: "user" | "ai" | "admin" | "system";
   content: string;
-  msg_type: "text" | "system";
+  msg_type: "text" | "system" | "refund_info";
   created_at: string;
 };
 

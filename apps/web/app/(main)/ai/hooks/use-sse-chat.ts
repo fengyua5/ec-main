@@ -70,7 +70,7 @@ export function useSSEChat() {
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: conversationId ?? 0,
-      sender: "buyer",
+      sender: "user",
       content,
       msg_type: "text",
       created_at: new Date().toISOString(),

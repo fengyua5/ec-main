@@ -3,7 +3,7 @@
 import type { Message } from "@ec/sdk";
 
 const senderConfig = {
-  buyer: {
+  user: {
     align: "justify-end",
     bg: "bg-blue-500 text-white",
     rounded: "rounded-2xl rounded-br-sm",
@@ -48,7 +48,7 @@ export function MessageBubble({ message, isStreaming }: Props) {
 
   return (
     <div className={`flex ${config.align} gap-2 px-4 py-1`}>
-      {message.sender !== "buyer" && <RobotIcon />}
+      {message.sender !== "user" && <RobotIcon />}
       <div
         className={`max-w-[75%] break-words px-3 py-2 text-sm leading-relaxed ${config.bg} ${config.rounded}`}
       >

@@ -18,7 +18,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     getAdminConversations(client, "waiting_human")
-      .then(setConversations)
+      .then((res) => setConversations(res.conversations))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
