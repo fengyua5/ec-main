@@ -4,7 +4,7 @@ from app.models.user import User
 from app.core.security import hash_password, verify_password
 
 
-def register_user(db: Session, email: str, password: str, role: str) -> User:
+def register_user(db: Session, email: str, password: str, role: str, username: str | None = None) -> User:
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise HTTPException(
@@ -13,6 +13,7 @@ def register_user(db: Session, email: str, password: str, role: str) -> User:
         )
     user = User(
         email=email,
+        username=username,
         password_hash=hash_password(password),
         role=role,
     )

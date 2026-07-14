@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auth")
 
 @router.post("/register", response_model=AuthResponse)
 def register(req: RegisterRequest, response: Response, db: Session = Depends(get_db)):
-    user = register_user(db, req.email, req.password, role="admin")
+    user = register_user(db, req.email, req.password, role="admin", username=req.username)
     token = create_access_token({"sub": str(user.id), "email": user.email, "role": user.role})
     set_auth_cookie(response, token)
     return AuthResponse(user=UserResponse.model_validate(user))

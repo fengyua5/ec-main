@@ -2,6 +2,7 @@ import type { ApiClient } from "./client";
 
 export type UserResponse = {
   id: number;
+  username: string | null;
   email: string;
   role: "buyer" | "admin";
   created_at: string;
@@ -12,6 +13,7 @@ export type AuthResponse = {
 };
 
 export type RegisterRequest = {
+  username?: string;
   email: string;
   password: string;
 };

@@ -1,0 +1,20 @@
+workflow: hotfix
+phase: archive
+context_compression: off
+build_mode: direct
+build_pause: null
+subagent_dispatch: null
+tdd_mode: direct
+isolation: branch
+verify_mode: light
+auto_transition: true
+base_ref: 02c65352e00ccf9abb8bd500ad4fc2f43090c0e9
+design_doc: null
+plan: null
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-07-13-update-readme-intro-verify.md
+branch_status: handled
+created_at: 2026-07-13
+verified_at: 2026-07-13
+archived: true
+build_command: echo ok

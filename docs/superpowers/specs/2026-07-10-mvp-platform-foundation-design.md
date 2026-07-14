@@ -2,6 +2,8 @@
 comet_change: mvp-platform-foundation
 role: technical-design
 canonical_spec: openspec
+archived-with: 2026-07-13-mvp-platform-foundation
+status: final
 ---
 
 # MVP 平台底座技术设计

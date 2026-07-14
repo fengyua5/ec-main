@@ -127,3 +127,37 @@ GET    /api/v1/auth/me         → 当前登录用户信息（需认证）
 **原因**：用户要求 API 按域隔离，避免前端与 admin 共享同一组 auth 端点。Web 注册自动设为 buyer 角色，Admin 注册自动设为 admin 角色，不需前端传递 role 参数。
 
 **影响**：SDK auth 方法增加 `path: "/web" | "/admin"` 参数；业务逻辑与设计一致；路由隔离增强了安全性（admin 登录端点额外校验 role 字段）。
+
+### shadcn/ui 前端 UI 框架
+
+**设计文档原方案**：使用 `@ec/ui` 共享包（packages/ui）管理通用 UI 组件（Button 等），两端共用。
+
+**实现方案**：两端独立使用 shadcn/ui（基于 `@base-ui/react` 的 Tailwind v4 组件库），`@ec/ui` 已废弃并移除依赖。
+
+**原因**：shadcn/ui 按需安装到各端 `components/ui/` 目录，组件源码可各自定制样式和主题，不需要维护共享 UI 包。Tailwind v4 的 scanner 无法穿透 workspace 包解析编译后的类名，直接在各端使用 shadcn 组件避免了该问题。
+
+**影响**：已安装的组件包括 `button`、`card`、`input`、`label`、`avatar`、`dropdown-menu`、`separator`。所有登录/注册表单使用 Card 包裹，Header 使用 Avatar + DropdownMenu 展示用户信息。后续添加新 UI 组件时直接在各端 `npx shadcn add <组件名>` 即可。
+
+### Admin 认证拦截（proxy.ts + API 代理路由）
+
+**设计文档原方案**：前端直接调用后端 API `/api/v1/admin/auth/*`，cookie 作用域为后端域（`localhost:8000`），前端页面加载时无法读取。
+
+**实现方案**：
+1. **Next.js 16 proxy.ts**（原 middleware）：检查所有页面请求的 `token` cookie，不存在则重定向到 `/login`；公开路径（`/login`、`/register`、`/api/*`、`/_next/*`）始终放行
+2. **API 代理路由** `apps/admin/app/api/auth/*/route.ts`：前端登录/注册/登出/获取用户改为调用本地 `/api/auth/*` 代理，由代理转发到后端。Set-Cookie 作用域变为 Next.js 域（`localhost:3001`），proxy.ts 可读取
+
+**原因**：httpOnly cookie 按 origin（host + port）隔离，后端 `localhost:8000` 设置的 cookie 不会发送到前端 `localhost:3001`，导致 proxy.ts 无法读取。API 代理路由使 cookie 作用域对齐，同时避免暴露后端地址给前端。
+
+**影响**：新增文件 `apps/admin/proxy.ts`、`apps/admin/app/api/auth/login/register/logout/me/route.ts`；登录/注册页不再直接调用 `@ec/sdk` 的后端地址，改为 fetch 本地 `/api/auth/*`。退出登录和获取用户信息也走代理。前端需配置 `API_BASE_URL`（服务器端环境变量，非 `NEXT_PUBLIC_*`）。
+
+### 前端测试框架（vitest）
+
+**决策**：Admin 端使用 vitest + @testing-library/react + jsdom 编写前端测试。
+
+**测试范围**：
+- proxy.ts 拦截逻辑（未认证重定向、公开路由放行、已认证用户通过）
+- API 代理路由（请求转发、cookie 传递）
+- AuthHeader 组件渲染（未登录/已登录状态）
+- Sidebar 组件渲染
+
+**理由**：vitest 与 Next.js 生态兼容性好（vs 可选 Jest），@testing-library/react 是 React 组件测试标准。

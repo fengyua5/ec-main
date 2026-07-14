@@ -2,6 +2,7 @@
 change: mvp-platform-foundation
 design-doc: docs/superpowers/specs/2026-07-10-mvp-platform-foundation-design.md
 base-ref: unborn-main-no-head
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 # MVP 平台底座实施计划
@@ -39,6 +40,7 @@ base-ref: unborn-main-no-head
 - 创建或修改：`README.md`，记录本地开发、环境变量和后续 changes 顺序。
 - 修改：`openspec/changes/mvp-platform-foundation/tasks.md`，按完成情况勾选任务。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 1：建立 workspace 和根脚本
@@ -105,6 +107,7 @@ Expected: 命令能运行；在后续任务创建具体 package 后，应能列�
 
 勾选 `openspec/changes/mvp-platform-foundation/tasks.md` 中 1.1、1.2、1.3。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 2：创建共享配置和 UI 基线
@@ -268,6 +271,7 @@ Expected: TypeScript 检查通过。
 
 勾选 `tasks.md` 中 2.3、3.1、3.3。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 3：创建 SDK health check client
@@ -387,6 +391,7 @@ Expected: TypeScript 检查通过。
 
 勾选 `tasks.md` 中 3.2。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 4：创建 web/admin Next.js shell apps
@@ -480,6 +485,7 @@ Expected: 两个应用 TypeScript 检查通过；如 Next.js 16 当前 lint 命�
 
 勾选 `tasks.md` 中 2.1、2.2。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 5：创建 backend FastAPI 和 SQLite 基线
@@ -663,6 +669,7 @@ Expected: `test_health_check` 通过。
 
 勾选 `tasks.md` 中 4.1、4.2、4.3、5.1、5.2。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 6：补齐 SQLite 说明、集成说明和 README
@@ -742,6 +749,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 勾选 `tasks.md` 中 5.3、6.1、6.2、6.3。
 
+archived-with: 2026-07-13-mvp-platform-foundation
 ---
 
 ### 任务 7：完成端到端基础验证

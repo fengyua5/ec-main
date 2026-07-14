@@ -1,0 +1,14 @@
+{
+  "change": "add-email-auth",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "3166969159c978d19a0385104fb3d272a6383dc9888705a4480662991b4407ea",
+  "files": [
+    { "path": "openspec/changes/add-email-auth/proposal.md", "sha256": "cdfc1259f24f6aa69ac72f5fd71925b68f3ff7a661041cebf53017614a2d1338" },
+    { "path": "openspec/changes/add-email-auth/design.md", "sha256": "46a86ae2b656404f2dbf4d3d94740c2b54f8d2078038d9be1d88d6911f58ffaf" },
+    { "path": "openspec/changes/add-email-auth/tasks.md", "sha256": "21b6390ab1a39f3df0d222a73585e4cebae93eb9fb7858fcd18e3cd33aa5752e" },
+    { "path": "openspec/changes/add-email-auth/specs/email-auth/spec.md", "sha256": "cccf4dc6a25340152ea6349c2280b9106755da924b6194bd563c342644a8bb9b" }
+  ]
+}

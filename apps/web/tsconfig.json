@@ -2,7 +2,8 @@
   "extends": "@ec/config/tsconfig/base.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": { "@/*": ["./*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
