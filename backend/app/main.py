@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.web.ai import router as web_ai_router
 from app.api.web.auth import router as web_auth_router
 from app.api.admin.auth import router as admin_auth_router
 from app.core.config import settings
@@ -31,5 +32,6 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "ec-backend"}
 
 
+app.include_router(web_ai_router, prefix="/api/v1/web")
 app.include_router(web_auth_router, prefix="/api/v1/web")
 app.include_router(admin_auth_router, prefix="/api/v1/admin")
