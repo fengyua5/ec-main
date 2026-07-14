@@ -1,5 +1,5 @@
 workflow: full
-phase: build
+phase: verify
 build_command: backend/pytest.sh
 verify_command: backend/pytest.sh
 context_compression: off
@@ -15,7 +15,7 @@ design_doc: openspec/changes/web-mobile-layout/design.md
 plan: docs/superpowers/plans/2026-07-14-web-mobile-layout.md
 verify_result: pending
 verification_report: null
-branch_status: existing
+branch_status: pending
 created_at: 2026-07-14
 verified_at: null
 archived: false

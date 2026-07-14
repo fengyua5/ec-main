@@ -14,14 +14,14 @@ export function BottomTabBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-background">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t bg-background">
       {tabs.map(({ href, label, Icon }) => {
         const isActive = pathname === href;
         return (
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center gap-0.5 text-xs ${
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
               isActive ? "text-primary" : "text-muted-foreground"
             }`}
           >
