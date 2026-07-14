@@ -30,7 +30,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-4">
+    <div className="w-full max-w-sm">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-center">买家登录</CardTitle>

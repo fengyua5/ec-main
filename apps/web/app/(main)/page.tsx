@@ -17,7 +17,7 @@ export default async function HomePage() {
   const healthLabel = await getHealthLabel();
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-6 py-10 text-zinc-950">
+    <div className="min-h-screen bg-zinc-50 px-6 py-10 text-zinc-950">
       <section className="mx-auto flex max-w-5xl flex-col gap-8">
         <div className="space-y-3">
           <p className="text-sm font-medium uppercase tracking-wide text-zinc-500">EC Main</p>
@@ -31,6 +31,6 @@ export default async function HomePage() {
           <span className="text-sm text-zinc-500">{healthLabel}</span>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

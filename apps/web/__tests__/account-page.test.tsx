@@ -44,7 +44,7 @@ describe("AccountPage", () => {
       expect(screen.getByText("testuser")).toBeInTheDocument();
     });
     expect(screen.getByText("test@example.com")).toBeInTheDocument();
-    expect(screen.getByText("角色: buyer")).toBeInTheDocument();
+    expect(screen.getByText("buyer")).toBeInTheDocument();
   });
 
   it("shows loading state initially", () => {

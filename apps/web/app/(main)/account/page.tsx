@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createApiClient, getMe, logout } from "@ec/sdk";
 import { Button } from "@/components/ui/button";
@@ -52,12 +53,12 @@ export default function AccountPage() {
           <p className="text-muted-foreground">请登录后查看账号信息</p>
         </div>
         <div className="flex gap-4">
-          <a href="/login">
+          <Link href="/login">
             <Button variant="outline">登录</Button>
-          </a>
-          <a href="/register">
+          </Link>
+          <Link href="/register">
             <Button>注册</Button>
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -80,7 +81,7 @@ export default function AccountPage() {
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">角色</p>
-            <p className="font-medium">角色: {user.role}</p>
+            <p className="font-medium">{user.role}</p>
           </div>
           <Button onClick={handleLogout} variant="outline" className="w-full">
             登出
