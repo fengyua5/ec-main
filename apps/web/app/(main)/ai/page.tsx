@@ -1,8 +1,23 @@
-export default function AIPage() {
+"use client";
+
+import { useSSEChat } from "./hooks/use-sse-chat";
+import { ChatList } from "./components/chat-list";
+import { ChatInput } from "./components/chat-input";
+
+export default function AIChatPage() {
+  const { messages, isStreaming, sendMessage, messagesEndRef } = useSSEChat();
+
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-semibold">AI 客服</h1>
-      <p className="text-muted-foreground">即将上线，敬请期待</p>
+    <div className="flex h-[calc(100dvh-4rem)] flex-col">
+      <div className="border-b px-4 py-3 text-center font-semibold shrink-0">
+        AI 智能客服
+      </div>
+      <ChatList
+        messages={messages}
+        isStreaming={isStreaming}
+        messagesEndRef={messagesEndRef}
+      />
+      <ChatInput onSend={sendMessage} disabled={isStreaming} />
     </div>
   );
 }
