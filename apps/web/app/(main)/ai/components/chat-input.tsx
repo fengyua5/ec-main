@@ -1,57 +1,73 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
-import { Send } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRef, useCallback } from "react";
 
-interface ChatInputProps {
+type Props = {
   onSend: (content: string) => void;
-  disabled?: boolean;
-}
+  disabled: boolean;
+};
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
-  const [value, setValue] = useState("");
+export function ChatInput({ onSend, disabled }: Props) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  function handleSend() {
-    const trimmed = value.trim();
-    if (!trimmed || disabled) return;
-    onSend(trimmed);
-    setValue("");
-  }
-
-  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  const adjustHeight = useCallback(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
     }
-  }
+  }, []);
+
+  const handleSend = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const text = el.value.trim();
+    if (!text || disabled) return;
+    onSend(text);
+    el.value = "";
+    adjustHeight();
+  }, [onSend, disabled, adjustHeight]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend],
+  );
 
   return (
-    <div className="border-t bg-white px-4 py-3">
-      <div className="flex items-end gap-2 rounded-xl border bg-gray-50 px-3 py-2">
+    <div className="shrink-0 border-t bg-white px-4 py-3">
+      <div className="flex items-end gap-2">
         <textarea
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="输入消息..."
+          ref={textareaRef}
           rows={1}
+          placeholder="输入消息..."
+          onInput={adjustHeight}
+          onKeyDown={handleKeyDown}
           disabled={disabled}
-          className={cn(
-            "flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-          )}
+          className="max-h-[120px] min-h-[40px] flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-400 focus:bg-white disabled:opacity-50"
         />
         <button
           onClick={handleSend}
-          disabled={disabled || !value.trim()}
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors",
-            value.trim() && !disabled
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-muted text-muted-foreground",
-          )}
+          disabled={disabled}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
         >
-          <Send className="size-4" />
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 19V5m0 0l-7 7m7-7l7 7"
+            />
+          </svg>
         </button>
       </div>
     </div>

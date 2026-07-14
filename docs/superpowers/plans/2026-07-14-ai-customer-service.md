@@ -6,7 +6,7 @@ base-ref: 028848551d5d3d1e06954754f489fbbba548231a
 
 # AI 智能客服系统实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 为 EC Main 平台提供完整的 AI 智能客服能力，涵盖买家端 Web 实时聊天、Admin FAQ 知识库管理和人工客服消息处理。
 
@@ -135,7 +135,7 @@ base-ref: 028848551d5d3d1e06954754f489fbbba548231a
 
 **难度:** S
 
-- [ ] **Step 1: 修改 pyproject.toml 添加依赖**
+- [x] **Step 1: 修改 pyproject.toml 添加依赖**
 
 ```toml
 # 在 [project] dependencies 末尾追加：
@@ -149,30 +149,30 @@ base-ref: 028848551d5d3d1e06954754f489fbbba548231a
   "sse-starlette>=2.0.0",
 ```
 
-- [ ] **Step 2: 修改 .env.example 添加 Ollama 地址**
+- [x] **Step 2: 修改 .env.example 添加 Ollama 地址**
 
 ```
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-- [ ] **Step 3: 修改 config.py 添加 Ollama 配置项**
+- [x] **Step 3: 修改 config.py 添加 Ollama 配置项**
 
 ```python
 # 在 Settings 类中追加：
     ollama_base_url: str = "http://localhost:11434"
 ```
 
-- [ ] **Step 4: 安装依赖**
+- [x] **Step 4: 安装依赖**
 
 Run: `cd backend && uv sync`
 Expected: 所有新依赖安装成功，无冲突报错。
 
-- [ ] **Step 5: 运行现有测试确保未破坏**
+- [x] **Step 5: 运行现有测试确保未破坏**
 
 Run: `cd backend && uv run pytest tests/ -q`
 Expected: 全部通过。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/pyproject.toml backend/.env.example backend/app/core/config.py backend/uv.lock
@@ -191,7 +191,7 @@ git commit -m "feat(ai): add AI dependencies (langchain, langgraph, llama-index,
 
 **难度:** S
 
-- [ ] **Step 1: 创建 Conversation 和 Message 模型**
+- [x] **Step 1: 创建 Conversation 和 Message 模型**
 
 ```python
 # backend/app/models/conversation.py
@@ -222,7 +222,7 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 ```
 
-- [ ] **Step 2: 在 models/__init__.py 导出新模型**
+- [x] **Step 2: 在 models/__init__.py 导出新模型**
 
 ```python
 # backend/app/models/__init__.py
@@ -233,12 +233,12 @@ from app.models.conversation import Conversation, Message
 __all__ = ["Base", "User", "Conversation", "Message"]
 ```
 
-- [ ] **Step 3: 验证模型可创建表**
+- [x] **Step 3: 验证模型可创建表**
 
 Run: `cd backend && uv run python -c "from app.models.conversation import Conversation, Message; print('OK')"`
 Expected: 输出 `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/models/conversation.py backend/app/models/__init__.py
@@ -259,7 +259,7 @@ git commit -m "feat(ai): add Conversation and Message SQLAlchemy models"
 
 **难度:** M
 
-- [ ] **Step 1: 创建 AI 领域包初始化文件**
+- [x] **Step 1: 创建 AI 领域包初始化文件**
 
 ```python
 # backend/app/domain/ai/__init__.py
@@ -269,7 +269,7 @@ git commit -m "feat(ai): add Conversation and Message SQLAlchemy models"
 # backend/app/domain/ai/llm/__init__.py
 ```
 
-- [ ] **Step 2: 实现 LLM 封装**
+- [x] **Step 2: 实现 LLM 封装**
 
 ```python
 # backend/app/domain/ai/llm/chat.py
@@ -293,7 +293,7 @@ def create_embeddings() -> OllamaEmbeddings:
     )
 ```
 
-- [ ] **Step 3: 编写测试（mock Ollama）**
+- [x] **Step 3: 编写测试（mock Ollama）**
 
 ```python
 # backend/tests/test_ai_llm.py
@@ -311,12 +311,12 @@ def test_create_embeddings_returns_instance() -> None:
     assert emb.model == "nomic-embed-text"
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_llm.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domain/ai/ backend/app/domain/ai/llm/ backend/tests/test_ai_llm.py
@@ -335,7 +335,7 @@ git commit -m "feat(ai): add ChatOllama and OllamaEmbeddings factory"
 
 **难度:** S
 
-- [ ] **Step 1: 实现 SSECallbackHandler**
+- [x] **Step 1: 实现 SSECallbackHandler**
 
 ```python
 # backend/app/domain/ai/llm/streaming.py
@@ -365,7 +365,7 @@ class SSECallbackHandler(BaseCallbackHandler):
                 break
 ```
 
-- [ ] **Step 2: 添加测试**
+- [x] **Step 2: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_llm.py
@@ -390,12 +390,12 @@ def test_sse_callback_handler_error() -> None:
     assert handler.queue.qsize() == 1
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_llm.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/llm/streaming.py backend/tests/test_ai_llm.py
@@ -414,7 +414,7 @@ git commit -m "feat(ai): add SSECallbackHandler for streaming LLM responses"
 
 **难度:** S
 
-- [ ] **Step 1: 实现提示词模板和意图分类 OutputParser**
+- [x] **Step 1: 实现提示词模板和意图分类 OutputParser**
 
 ```python
 # backend/app/domain/ai/llm/prompts.py
@@ -464,7 +464,7 @@ refund_collect_prompt = ChatPromptTemplate.from_messages([
 ])
 ```
 
-- [ ] **Step 2: 添加测试**
+- [x] **Step 2: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_llm.py
@@ -488,12 +488,12 @@ def test_intent_prompt_renders() -> None:
     assert "greeting" in prompt
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_llm.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/llm/prompts.py backend/tests/test_ai_llm.py
@@ -513,13 +513,13 @@ git commit -m "feat(ai): add prompt templates and intent output parser"
 
 **难度:** M
 
-- [ ] **Step 1: 创建 RAG 包初始化文件**
+- [x] **Step 1: 创建 RAG 包初始化文件**
 
 ```python
 # backend/app/domain/ai/rag/__init__.py
 ```
 
-- [ ] **Step 2: 实现 FaqIndexService**
+- [x] **Step 2: 实现 FaqIndexService**
 
 ```python
 # backend/app/domain/ai/rag/index_service.py
@@ -569,7 +569,7 @@ def delete_collection(collection_name: str) -> None:
         pass
 ```
 
-- [ ] **Step 3: 编写测试（mock ChromaDB）**
+- [x] **Step 3: 编写测试（mock ChromaDB）**
 
 ```python
 # backend/tests/test_ai_rag.py
@@ -580,12 +580,12 @@ def test_delete_nonexistent_collection_does_not_raise() -> None:
     delete_collection("nonexistent_test_collection")
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_rag.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domain/ai/rag/ backend/tests/test_ai_rag.py
@@ -604,7 +604,7 @@ git commit -m "feat(ai): add FaqIndexService for MD to vector index pipeline"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 FaqRetriever**
+- [x] **Step 1: 实现 FaqRetriever**
 
 ```python
 # backend/app/domain/ai/rag/retriever.py
@@ -642,7 +642,7 @@ def retrieve_faq(collection_name: str, query: str, top_k: int = 3) -> list[str]:
     return results
 ```
 
-- [ ] **Step 2: 添加测试**
+- [x] **Step 2: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_rag.py
@@ -654,12 +654,12 @@ def test_retrieve_nonexistent_collection_returns_empty() -> None:
     assert result == []
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_rag.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/rag/retriever.py backend/tests/test_ai_rag.py
@@ -678,7 +678,7 @@ git commit -m "feat(ai): add FaqRetriever with similarity threshold filtering"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 FAQDocument CRUD**
+- [x] **Step 1: 实现 FAQDocument CRUD**
 
 ```python
 # backend/app/domain/ai/rag/faq_repo.py
@@ -728,7 +728,7 @@ class FaqRepository:
         return True
 ```
 
-- [ ] **Step 2: 添加测试**
+- [x] **Step 2: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_rag.py
@@ -757,12 +757,12 @@ def test_faq_repo_create_and_list() -> None:
     FAQDocument.__table__.drop(bind=engine, checkfirst=True)
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_rag.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/rag/faq_repo.py backend/tests/test_ai_rag.py
@@ -781,13 +781,13 @@ git commit -m "feat(ai): add FAQDocument model and FaqRepository CRUD"
 
 **难度:** S
 
-- [ ] **Step 1: 创建工作流包初始化**
+- [x] **Step 1: 创建工作流包初始化**
 
 ```python
 # backend/app/domain/ai/workflow/__init__.py
 ```
 
-- [ ] **Step 2: 定义 ConversationState**
+- [x] **Step 2: 定义 ConversationState**
 
 ```python
 # backend/app/domain/ai/workflow/state.py
@@ -803,12 +803,12 @@ class ConversationState(TypedDict):
     response: str
 ```
 
-- [ ] **Step 3: 验证导入正常**
+- [x] **Step 3: 验证导入正常**
 
 Run: `cd backend && uv run python -c "from app.domain.ai.workflow.state import ConversationState; print('OK')"`
 Expected: 输出 `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/workflow/
@@ -827,7 +827,7 @@ git commit -m "feat(ai): define ConversationState TypedDict for LangGraph"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 classify_intent 函数**
+- [x] **Step 1: 实现 classify_intent 函数**
 
 ```python
 # backend/app/domain/ai/workflow/nodes.py
@@ -847,7 +847,7 @@ def classify_intent(state: ConversationState) -> dict:
     }
 ```
 
-- [ ] **Step 2: 编写测试（mock LLM）**
+- [x] **Step 2: 编写测试（mock LLM）**
 
 ```python
 # backend/tests/test_ai_workflow.py
@@ -869,7 +869,7 @@ def test_classify_intent_returns_dict_with_keys() -> None:
     assert callable(classify_intent)
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/app/domain/ai/workflow/nodes.py backend/tests/test_ai_workflow.py
@@ -888,7 +888,7 @@ git commit -m "feat(ai): implement classify_intent LangGraph node"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 FAQ 检索和回答节点**
+- [x] **Step 1: 实现 FAQ 检索和回答节点**
 
 ```python
 # 追加到 backend/app/domain/ai/workflow/nodes.py
@@ -915,7 +915,7 @@ def answer_faq(state: ConversationState) -> dict:
     return {"response": result.content if hasattr(result, "content") else str(result)}
 ```
 
-- [ ] **Step 2: 更新测试**
+- [x] **Step 2: 更新测试**
 
 ```python
 # 追加到 backend/tests/test_ai_workflow.py
@@ -927,7 +927,7 @@ def test_retrieve_faq_returns_callable() -> None:
     assert callable(answer_faq)
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/app/domain/ai/workflow/nodes.py backend/tests/test_ai_workflow.py
@@ -946,7 +946,7 @@ git commit -m "feat(ai): implement retrieve_faq and answer_faq LangGraph nodes"
 
 **难度:** M
 
-- [ ] **Step 1: 实现退单处理节点**
+- [x] **Step 1: 实现退单处理节点**
 
 ```python
 # 追加到 backend/app/domain/ai/workflow/nodes.py
@@ -978,7 +978,7 @@ def process_refund(state: ConversationState) -> dict:
     return {"response": response, "intent": "faq"}
 ```
 
-- [ ] **Step 2: 添加测试**
+- [x] **Step 2: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_workflow.py
@@ -998,12 +998,12 @@ def test_process_refund_returns_message() -> None:
     assert "ORD123" in result["response"]
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_workflow.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/app/domain/ai/workflow/nodes.py backend/tests/test_ai_workflow.py
@@ -1023,7 +1023,7 @@ git commit -m "feat(ai): implement collect_refund_info and process_refund nodes"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 greeting 和 handoff_human 节点**
+- [x] **Step 1: 实现 greeting 和 handoff_human 节点**
 
 ```python
 # 追加到 backend/app/domain/ai/workflow/nodes.py
@@ -1035,7 +1035,7 @@ def handoff_human(state: ConversationState) -> dict:
     return {"response": "正在为您转接人工客服，请稍候...", "intent": "human"}
 ```
 
-- [ ] **Step 2: 组装 StateGraph**
+- [x] **Step 2: 组装 StateGraph**
 
 ```python
 # backend/app/domain/ai/workflow/graph.py
@@ -1111,7 +1111,7 @@ def build_chat_graph() -> StateGraph:
     return workflow.compile()
 ```
 
-- [ ] **Step 3: 添加图组装测试**
+- [x] **Step 3: 添加图组装测试**
 
 ```python
 # 追加到 backend/tests/test_ai_workflow.py
@@ -1123,12 +1123,12 @@ def test_build_chat_graph_returns_compiled_graph() -> None:
     assert graph is not None
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_workflow.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domain/ai/workflow/graph.py backend/app/domain/ai/workflow/nodes.py backend/tests/test_ai_workflow.py
@@ -1147,13 +1147,13 @@ git commit -m "feat(ai): assemble LangGraph StateGraph with all nodes"
 
 **难度:** M
 
-- [ ] **Step 1: 创建 models 包初始化**
+- [x] **Step 1: 创建 models 包初始化**
 
 ```python
 # backend/app/domain/ai/models/__init__.py
 ```
 
-- [ ] **Step 2: 实现会话与消息仓库**
+- [x] **Step 2: 实现会话与消息仓库**
 
 ```python
 # backend/app/domain/ai/models/conversation_repo.py
@@ -1217,7 +1217,7 @@ class ConversationRepository:
         ).order_by(Message.created_at.asc()).all()
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/app/domain/ai/models/
@@ -1237,7 +1237,7 @@ git commit -m "feat(ai): add ConversationRepository CRUD service"
 
 **难度:** L
 
-- [ ] **Step 1: 实现 Web AI 聊天路由**
+- [x] **Step 1: 实现 Web AI 聊天路由**
 
 ```python
 # backend/app/api/web/ai.py
@@ -1332,7 +1332,7 @@ def get_messages(conv_id: int, db: Session = Depends(get_db)):
     ]}
 ```
 
-- [ ] **Step 2: 在 main.py 注册路由**
+- [x] **Step 2: 在 main.py 注册路由**
 
 ```python
 # 在 backend/app/main.py 已有导入后追加：
@@ -1342,7 +1342,7 @@ from app.api.web.ai import router as web_ai_router
 app.include_router(web_ai_router, prefix="/api/v1/web/ai")
 ```
 
-- [ ] **Step 3: 编写 API 测试**
+- [x] **Step 3: 编写 API 测试**
 
 ```python
 # backend/tests/test_ai_api_web.py
@@ -1372,12 +1372,12 @@ def test_get_messages_empty() -> None:
     assert response.json()["messages"] == []
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_api_web.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/api/web/ai.py backend/app/main.py backend/tests/test_ai_api_web.py
@@ -1396,7 +1396,7 @@ git commit -m "feat(ai): add Web AI chat SSE API and conversation endpoints"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 Admin FAQ 路由**
+- [x] **Step 1: 实现 Admin FAQ 路由**
 
 ```python
 # backend/app/api/admin/ai_faq.py
@@ -1448,7 +1448,7 @@ def delete_faq(doc_id: int, db: Session = Depends(get_db)):
     return {"success": True}
 ```
 
-- [ ] **Step 2: 在 main.py 注册路由**
+- [x] **Step 2: 在 main.py 注册路由**
 
 ```python
 # 在 backend/app/main.py 已有导入后追加：
@@ -1458,7 +1458,7 @@ from app.api.admin.ai_faq import router as admin_ai_faq_router
 app.include_router(admin_ai_faq_router, prefix="/api/v1/admin/ai")
 ```
 
-- [ ] **Step 3: 编写测试**
+- [x] **Step 3: 编写测试**
 
 ```python
 # backend/tests/test_ai_api_admin.py
@@ -1489,12 +1489,12 @@ def test_delete_faq_nonexistent() -> None:
     assert response.status_code == 404
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_api_admin.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/api/admin/ai_faq.py backend/app/main.py backend/tests/test_ai_api_admin.py
@@ -1513,7 +1513,7 @@ git commit -m "feat(ai): add Admin FAQ CRUD API"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 Admin 客服消息路由**
+- [x] **Step 1: 实现 Admin 客服消息路由**
 
 ```python
 # backend/app/api/admin/ai_chat.py
@@ -1574,7 +1574,7 @@ async def reply(conv_id: int, req: ReplyRequest, db: Session = Depends(get_db)):
     return EventSourceResponse(event_generator())
 ```
 
-- [ ] **Step 2: 在 main.py 注册路由**
+- [x] **Step 2: 在 main.py 注册路由**
 
 ```python
 # 在 backend/app/main.py 已有导入后追加：
@@ -1584,7 +1584,7 @@ from app.api.admin.ai_chat import router as admin_ai_chat_router
 app.include_router(admin_ai_chat_router, prefix="/api/v1/admin/ai")
 ```
 
-- [ ] **Step 3: 添加测试**
+- [x] **Step 3: 添加测试**
 
 ```python
 # 追加到 backend/tests/test_ai_api_admin.py
@@ -1599,12 +1599,12 @@ def test_admin_reply_nonexistent() -> None:
     assert response.status_code == 404
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cd backend && uv run pytest tests/test_ai_api_admin.py -q`
 Expected: 全部通过。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/api/admin/ai_chat.py backend/app/main.py backend/tests/test_ai_api_admin.py
@@ -1623,7 +1623,7 @@ git commit -m "feat(ai): add Admin chat message API"
 
 **难度:** S
 
-- [ ] **Step 1: 实现 AI 客服 SDK 函数**
+- [x] **Step 1: 实现 AI 客服 SDK 函数**
 
 ```typescript
 // packages/sdk/src/ai.ts
@@ -1714,7 +1714,7 @@ export async function adminReply(client: ApiClient, convId: number, content: str
 }
 ```
 
-- [ ] **Step 2: 更新 SDK index.ts**
+- [x] **Step 2: 更新 SDK index.ts**
 
 ```typescript
 // packages/sdk/src/index.ts（追加导出）
@@ -1737,12 +1737,12 @@ export type {
 } from "./ai";
 ```
 
-- [ ] **Step 3: 验证 TypeScript 编译**
+- [x] **Step 3: 验证 TypeScript 编译**
 
 Run: `cd packages/sdk && pnpm check`
 Expected: 无错误。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add packages/sdk/src/ai.ts packages/sdk/src/index.ts
@@ -1763,7 +1763,7 @@ git commit -m "feat(ai): add AI customer service SDK functions"
 
 **难度:** L
 
-- [ ] **Step 1: 实现消息气泡组件**
+- [x] **Step 1: 实现消息气泡组件**
 
 ```tsx
 // apps/web/app/(main)/ai/components/message-bubble.tsx
@@ -1793,7 +1793,7 @@ export function MessageBubble({ message }: { message: Message }) {
 }
 ```
 
-- [ ] **Step 2: 实现聊天输入框组件**
+- [x] **Step 2: 实现聊天输入框组件**
 
 ```tsx
 // apps/web/app/(main)/ai/components/chat-input.tsx
@@ -1836,7 +1836,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
 }
 ```
 
-- [ ] **Step 3: 实现 SSE 聊天 Hook**
+- [x] **Step 3: 实现 SSE 聊天 Hook**
 
 ```typescript
 // apps/web/app/(main)/ai/hooks/use-sse-chat.ts
@@ -1939,7 +1939,7 @@ export function useSseChat() {
 }
 ```
 
-- [ ] **Step 4: 重构 AI 页面**
+- [x] **Step 4: 重构 AI 页面**
 
 ```tsx
 // apps/web/app/(main)/ai/page.tsx
@@ -1972,12 +1972,12 @@ export default function AIPage() {
 }
 ```
 
-- [ ] **Step 5: 验证 TypeScript 编译**
+- [x] **Step 5: 验证 TypeScript 编译**
 
 Run: `cd apps/web && pnpm check`
 Expected: 无错误。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web/app/\(main\)/ai/
@@ -1995,7 +1995,7 @@ git commit -m "feat(ai): implement Web AI chat UI with SSE streaming"
 
 **难度:** S
 
-- [ ] **Step 1: 添加自动滚动和加载历史逻辑**
+- [x] **Step 1: 添加自动滚动和加载历史逻辑**
 
 ```tsx
 // apps/web/app/(main)/ai/page.tsx（替换为完整实现）
@@ -2038,12 +2038,12 @@ export default function AIPage() {
 }
 ```
 
-- [ ] **Step 2: 验证编译**
+- [x] **Step 2: 验证编译**
 
 Run: `cd apps/web && pnpm check`
 Expected: 无错误。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add apps/web/app/\(main\)/ai/page.tsx
@@ -2063,7 +2063,7 @@ git commit -m "feat(ai): add auto-scroll in AI chat page"
 
 **难度:** M
 
-- [ ] **Step 1: 实现 MD 上传组件**
+- [x] **Step 1: 实现 MD 上传组件**
 
 ```tsx
 // apps/admin/app/(main)/faq/components/upload-form.tsx
@@ -2117,7 +2117,7 @@ export function UploadForm({ onSuccess }: UploadFormProps) {
 }
 ```
 
-- [ ] **Step 2: 实现 FAQ 列表页面**
+- [x] **Step 2: 实现 FAQ 列表页面**
 
 ```tsx
 // apps/admin/app/(main)/faq/page.tsx
@@ -2198,7 +2198,7 @@ export default function FaqPage() {
 }
 ```
 
-- [ ] **Step 3: 修改侧边栏添加导航项**
+- [x] **Step 3: 修改侧边栏添加导航项**
 
 ```tsx
 // apps/admin/app/components/sidebar.tsx
@@ -2212,12 +2212,12 @@ const navItems = [
 ];
 ```
 
-- [ ] **Step 4: 验证编译**
+- [x] **Step 4: 验证编译**
 
 Run: `cd apps/admin && pnpm check`
 Expected: 无错误。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/admin/app/\(main\)/faq/ apps/admin/app/components/sidebar.tsx
@@ -2236,7 +2236,7 @@ git commit -m "feat(ai): add Admin FAQ management page with upload"
 
 **难度:** M
 
-- [ ] **Step 1: 实现聊天弹窗组件**
+- [x] **Step 1: 实现聊天弹窗组件**
 
 ```tsx
 // apps/admin/app/(main)/chat/components/chat-window.tsx
@@ -2336,7 +2336,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
 }
 ```
 
-- [ ] **Step 2: 实现客服会话列表页面**
+- [x] **Step 2: 实现客服会话列表页面**
 
 ```tsx
 // apps/admin/app/(main)/chat/page.tsx
@@ -2407,12 +2407,12 @@ export default function ChatPage() {
 }
 ```
 
-- [ ] **Step 3: 验证编译**
+- [x] **Step 3: 验证编译**
 
 Run: `cd apps/admin && pnpm check`
 Expected: 无错误。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add apps/admin/app/\(main\)/chat/

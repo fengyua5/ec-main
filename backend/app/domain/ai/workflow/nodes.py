@@ -1,0 +1,160 @@
+import json
+import logging
+
+from langchain_core.messages import HumanMessage
+
+from app.domain.ai.llm.chat import get_chat_llm
+from app.domain.ai.llm.prompts import (
+    GREETING_RESPONSE,
+    intent_prompt,
+    faq_prompt,
+)
+from app.domain.ai.rag import FaqIndexService, FaqRetriever
+from app.domain.ai.models.conversation_repo import ConversationRepository
+from app.domain.ai.workflow.state import ConversationState
+
+logger = logging.getLogger(__name__)
+
+
+async def classify_intent(state: ConversationState) -> dict:
+    last_user_msg = None
+    last_ai_msg = None
+    for m in reversed(state["messages"]):
+        if isinstance(m, HumanMessage):
+            if last_user_msg is None:
+                last_user_msg = m.content
+        else:
+            if last_ai_msg is None:
+                last_ai_msg = m.content
+        if last_user_msg is not None and last_ai_msg is not None:
+            break
+
+    if not last_user_msg:
+        logger.info("意图识别: 无用户消息，默认转人工")
+        return {"intent": "human", "confidence": 0.0}
+
+    context_parts = []
+    if last_ai_msg:
+        context_parts.append(f"上一条回复: {last_ai_msg}")
+    context_parts.append(f"用户: {last_user_msg}")
+
+    llm = get_chat_llm(temperature=0, streaming=False)
+    chain = intent_prompt | llm
+    response = await chain.ainvoke({"user_input": "\n".join(context_parts)})
+
+    try:
+        result = json.loads(response.content.strip())
+        intent = result.get("intent", "human")
+        confidence = float(result.get("confidence", 0.0))
+        if confidence < 0.5:
+            logger.info("意图识别: 置信度 %.2f < 0.5，降级转人工", confidence)
+            intent = "human"
+        else:
+            logger.info("意图识别: %s (置信度 %.2f)", intent, confidence)
+    except (json.JSONDecodeError, ValueError, AttributeError) as e:
+        logger.warning("意图识别: LLM 返回解析失败: %s", e)
+        intent = "human"
+        confidence = 0.0
+
+    return {"intent": intent, "confidence": confidence}
+
+
+async def handle_greeting(state: ConversationState) -> dict:
+    logger.info("问候处理: 返回欢迎语")
+    return {"response": GREETING_RESPONSE}
+
+
+async def retrieve_faq(state: ConversationState) -> dict:
+    last_user_msg = None
+    for m in reversed(state["messages"]):
+        if isinstance(m, HumanMessage):
+            last_user_msg = m.content
+            break
+
+    if not last_user_msg:
+        logger.info("FAQ 检索: 无用户消息")
+        return {"faq_context": [], "intent": "human"}
+
+    retriever = FaqRetriever(FaqIndexService())
+    results = retriever.retrieve(last_user_msg)
+
+    logger.info("FAQ 检索: query='%s' 命中 %d 条", last_user_msg[:50], len(results))
+    if not results:
+        return {"faq_context": [], "intent": "human"}
+
+    return {"faq_context": results}
+
+
+async def answer_faq(state: ConversationState) -> dict:
+    faq_context = state.get("faq_context", [])
+    last_user_msg = None
+    for m in reversed(state["messages"]):
+        if isinstance(m, HumanMessage):
+            last_user_msg = m.content
+            break
+
+    if not last_user_msg or not faq_context:
+        logger.info("FAQ 回答: 缺少上下文或问题，返回兜底")
+        return {"response": "抱歉，无法找到相关的 FAQ 信息。"}
+
+    context_text = "\n\n".join(c["content"] for c in faq_context)
+
+    llm = get_chat_llm(temperature=0, streaming=False)
+    chain = faq_prompt | llm
+    response = await chain.ainvoke({"context": context_text, "question": last_user_msg})
+
+    logger.info("FAQ 回答: 生成回复（长度 %d 字符）", len(response.content))
+    return {"response": response.content}
+
+
+async def collect_refund_info(state: ConversationState) -> dict:
+    refund_info = dict(state.get("refund_info", {}))
+    messages = state["messages"]
+    last_msg = messages[-1].content if messages else ""
+
+    if "order_no" not in refund_info:
+        refund_info["order_no"] = last_msg
+        logger.info("退单收集: 已记录订单号 '%s'", last_msg[:30])
+        return {"response": "请输入退款原因：", "refund_info": refund_info}
+
+    if "reason" not in refund_info:
+        refund_info["reason"] = last_msg
+        logger.info("退单收集: 已记录退款原因 '%s'", last_msg[:30])
+        return {"response": "请输入退款金额：", "refund_info": refund_info}
+
+    if "amount" not in refund_info:
+        refund_info["amount"] = last_msg
+        logger.info("退单收集: 已记录退款金额 '%s'", last_msg[:30])
+        return {"refund_info": refund_info}
+
+    logger.info("退单收集: 信息已完整，准备提交流程")
+    return {"refund_info": refund_info}
+
+
+async def process_refund(state: ConversationState) -> dict:
+    refund_info = state.get("refund_info", {})
+    logger.info(
+        "退单处理: 订单号=%s, 原因=%s, 金额=%s",
+        refund_info.get("order_no", "?"),
+        refund_info.get("reason", "?"),
+        refund_info.get("amount", "?"),
+    )
+    return {"response": "退单申请已提交，处理成功！"}
+
+
+async def handoff_human(state: ConversationState) -> dict:
+    conv_id = state.get("conversation_id")
+    if conv_id is not None:
+        repo = ConversationRepository()
+        try:
+            from app.db.session import SessionLocal
+            db = SessionLocal()
+            try:
+                repo.update_status(db, conv_id, "waiting_human")
+                logger.info("转人工: 会话 %d 状态已更新为 waiting_human", conv_id)
+            finally:
+                db.close()
+        except Exception as e:
+            logger.error("转人工: 更新会话 %d 状态失败: %s", conv_id, e)
+    logger.info("转人工: 会话 %d 正在转接", conv_id)
+    return {"response": "正在为您转接人工客服，请稍候..."}

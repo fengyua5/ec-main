@@ -2,31 +2,36 @@
 
 import type { Message } from "@ec/sdk";
 import { MessageBubble } from "./message-bubble";
-import { Bot } from "lucide-react";
 
-interface ChatListProps {
+type Props = {
   messages: Message[];
   isStreaming: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  onLoadHistory: () => void;
-}
+};
 
-export function ChatList({
-  messages,
-  isStreaming,
-  messagesEndRef,
-  onLoadHistory,
-}: ChatListProps) {
+export function ChatList({ messages, isStreaming, messagesEndRef }: Props) {
   if (messages.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-        <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <Bot className="size-8 text-primary" />
-        </div>
+      <div className="flex flex-1 items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-lg font-semibold">AI 智能客服</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            您好！我是智能客服助手，请问有什么可以帮助您的？
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+            <svg
+              className="h-8 w-8 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-base font-medium text-gray-700">AI 智能客服</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            您好！我是 AI 客服助手，有什么可以帮助您的？
           </p>
         </div>
       </div>
@@ -34,18 +39,11 @@ export function ChatList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto py-4">
-      <button
-        onClick={onLoadHistory}
-        className="w-full py-2 text-center text-xs text-muted-foreground hover:text-foreground"
-      >
-        上滑加载更多
-      </button>
+    <div className="flex-1 overflow-y-auto py-3">
       {messages.map((msg, i) => (
         <MessageBubble
-          key={msg.id ?? i}
-          sender={msg.sender}
-          content={msg.content}
+          key={msg.id}
+          message={msg}
           isStreaming={isStreaming && i === messages.length - 1 && msg.sender === "ai"}
         />
       ))}

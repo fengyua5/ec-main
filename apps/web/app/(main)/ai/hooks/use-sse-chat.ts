@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createApiClient } from "@ec/sdk/client";
-import {
-  chatStream,
-  getConversations,
-  getMessages,
-} from "@ec/sdk";
+import { createApiClient, chatStream, getConversations, getMessages } from "@ec/sdk";
 import type { Message } from "@ec/sdk";
 
 const client = createApiClient({
@@ -59,11 +54,11 @@ export function useSSEChat() {
 
   async function loadConversation() {
     try {
-      const conversations = await getConversations(client);
+      const { conversations } = await getConversations(client);
       if (conversations.length > 0) {
         const latest = conversations[0];
         setConversationId(latest.id);
-        const msgs = await getMessages(client, latest.id);
+        const { messages: msgs } = await getMessages(client, latest.id);
         setMessages(msgs);
       }
     } catch {
@@ -75,8 +70,9 @@ export function useSSEChat() {
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: conversationId ?? 0,
-      sender: "buyer",
+      sender: "user",
       content,
+      msg_type: "text",
       created_at: new Date().toISOString(),
     };
 
@@ -84,7 +80,10 @@ export function useSSEChat() {
     setIsStreaming(true);
 
     try {
-      const response = await chatStream(client, conversationId, content);
+      const response = await chatStream(client, {
+        conversation_id: conversationId,
+        content,
+      });
 
       if (!response.ok) {
         throw new Error("Chat request failed");
@@ -95,6 +94,7 @@ export function useSSEChat() {
         conversation_id: conversationId ?? 0,
         sender: "ai",
         content: "",
+        msg_type: "text",
         created_at: new Date().toISOString(),
       };
 
@@ -120,8 +120,9 @@ export function useSSEChat() {
         {
           id: Date.now() + 2,
           conversation_id: conversationId ?? 0,
-          sender: "system",
+          sender: "ai" as const,
           content: "消息发送失败，请稍后重试",
+          msg_type: "system" as const,
           created_at: new Date().toISOString(),
         },
       ]);
@@ -133,8 +134,8 @@ export function useSSEChat() {
   async function loadHistory() {
     if (!conversationId) return;
     try {
-      const older = await getMessages(client, conversationId);
-      setMessages(older);
+      const { messages: msgs } = await getMessages(client, conversationId);
+      setMessages(msgs);
     } catch {
       // ignore
     }
