@@ -23,8 +23,9 @@ describe("BottomTabBar", () => {
   it("highlights the active tab based on current path", () => {
     mockUsePathname.mockReturnValue("/ai");
     render(<BottomTabBar />);
-    const aiTab = screen.getByText("AI 客服").closest("a");
-    expect(aiTab).toHaveClass("text-primary");
+    const aiLabel = screen.getByText("AI 客服");
+    expect(aiLabel).toHaveClass("text-primary");
+    expect(aiLabel).toHaveClass("font-medium");
   });
 
   it("links tabs to correct routes", () => {

@@ -1,5 +1,7 @@
 workflow: tweak
-phase: build
+phase: archive
+build_command: pnpm --filter @ec/web test
+verify_command: pnpm --filter @ec/web test
 context_compression: off
 build_mode: direct
 build_pause: null
@@ -11,9 +13,9 @@ auto_transition: true
 base_ref: 7d120c6668368d30ce1e89fc716e3b8b9625c2d8
 design_doc: null
 plan: null
-verify_result: pending
-verification_report: null
-branch_status: pending
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-07-14-tab-bar-ui-fixes-verify.md
+branch_status: handled
 created_at: 2026-07-14
-verified_at: null
+verified_at: 2026-07-14
 archived: false

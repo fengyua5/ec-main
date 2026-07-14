@@ -21,12 +21,13 @@ export function BottomTabBar() {
           <Link
             key={href}
             href={href}
-            className={`mx-2 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1 text-xs ${
-              isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
-            }`}
+            className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-xs text-muted-foreground"
           >
-            <Icon className="size-5" />
-            <span>{label}</span>
+            {isActive && (
+              <span className="absolute -top-0 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-primary" />
+            )}
+            <Icon className={`size-5 ${isActive ? "text-primary" : ""}`} />
+            <span className={isActive ? "font-medium text-primary" : ""}>{label}</span>
           </Link>
         );
       })}
