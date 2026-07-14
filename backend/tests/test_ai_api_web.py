@@ -39,7 +39,7 @@ def test_chat_streaming_response() -> None:
         "app.api.web.ai.ChatEngine.process_message",
         side_effect=_fake_events,
     ):
-        response = client.post("/api/v1/web/ai/chat", params={"content": "你好"})
+        response = client.post("/api/v1/web/ai/chat", json={"content": "你好"})
         assert response.status_code == 200
         assert "text/event-stream" in response.headers["content-type"]
         assert response.headers["x-accel-buffering"] == "no"
@@ -56,7 +56,7 @@ def test_chat_new_conversation_on_missing_id() -> None:
         "app.api.web.ai.ChatEngine.process_message",
         side_effect=_fake_done,
     ):
-        response = client.post("/api/v1/web/ai/chat", params={"content": "test"})
+        response = client.post("/api/v1/web/ai/chat", json={"content": "test"})
         assert response.status_code == 200
 
 

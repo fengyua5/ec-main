@@ -11,6 +11,11 @@ from app.domain.ai.models.conversation_repo import ConversationRepository, Messa
 from app.domain.ai.workflow.engine import ChatEngine
 
 
+class ChatRequest(BaseModel):
+    conversation_id: int | None = None
+    content: str
+
+
 class ConversationResponse(BaseModel):
     id: int
     buyer_id: int
@@ -55,17 +60,17 @@ async def _event_generator(
 
 @router.post("/chat")
 async def chat(
-    conversation_id: int | None = None,
-    content: str = ...,
+    req: ChatRequest,
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
+    conversation_id = req.conversation_id
     if conversation_id is None:
         conv_repo = ConversationRepository()
         conv = conv_repo.create(db, buyer_id=1)
         conversation_id = conv.id
 
     return StreamingResponse(
-        _event_generator(db, conversation_id, content),
+        _event_generator(db, conversation_id, req.content),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
