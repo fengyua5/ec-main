@@ -1,0 +1,14 @@
+{
+  "change": "ai-customer-service",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "7dcfc525e6a50b4f6654e8f357a5fd2f047fe326d9c8985ae64a2be45435ac52",
+  "files": [
+    { "path": "openspec/changes/ai-customer-service/proposal.md", "sha256": "8e60066c6818b5e7bffe35d49d2fa2aba06802d835f43f6615c1fe6192e1192d" },
+    { "path": "openspec/changes/ai-customer-service/design.md", "sha256": "343feb1e02d673101e853f405d4ef37a77b20fadd54c8f5de07641ced32f11a1" },
+    { "path": "openspec/changes/ai-customer-service/tasks.md", "sha256": "264bfbe72f2a42b90afc734cdf66c1024319d9fd6e959f19ca42e862b16dc2bb" },
+    { "path": "openspec/changes/ai-customer-service/specs/ai-customer-service/spec.md", "sha256": "a255c6a4bc95d7e7aa51c4870c3146939d962e2249113c2269a92eecfb040344" }
+  ]
+}
