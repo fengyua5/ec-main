@@ -20,3 +20,6 @@ backend/.data/
 .agent/
 .agents/
 .pnpm-store/
+
+# Git worktrees
+.worktrees/
