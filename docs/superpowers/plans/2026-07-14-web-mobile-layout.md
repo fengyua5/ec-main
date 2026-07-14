@@ -2,6 +2,7 @@
 change: web-mobile-layout
 design-doc: openspec/changes/web-mobile-layout/design.md
 base-ref: 343b9f8c322c65467ae2e178f336e83a054e1b7b
+archived-with: 2026-07-14-web-mobile-layout
 ---
 
 # Web 端移动布局改造 — 实施计划

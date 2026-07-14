@@ -14,15 +14,15 @@ export function BottomTabBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t bg-background">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t bg-white">
       {tabs.map(({ href, label, Icon }) => {
         const isActive = pathname === href;
         return (
           <Link
             key={href}
             href={href}
-            className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
-              isActive ? "text-primary" : "text-muted-foreground"
+            className={`mx-2 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1 text-xs ${
+              isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
             }`}
           >
             <Icon className="size-5" />
