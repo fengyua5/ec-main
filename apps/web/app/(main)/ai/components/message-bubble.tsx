@@ -44,7 +44,12 @@ export function MessageBubble({ message, isStreaming }: Props) {
     );
   }
 
-  const config = senderConfig[message.sender];
+  type SenderKey = keyof typeof senderConfig;
+  const config = senderConfig[message.sender as SenderKey] ?? {
+    align: "justify-start",
+    bg: "bg-gray-100",
+    rounded: "rounded-2xl rounded-bl-sm",
+  };
 
   return (
     <div className={`flex ${config.align} gap-2 px-4 py-1`}>
