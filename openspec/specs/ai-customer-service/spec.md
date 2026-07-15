@@ -1,5 +1,3 @@
-## ADDED Requirements
-
 ### Requirement: Buyer Chat Interface
 买家端 Web 聊天页面 SHALL 提供微信风格的即时消息体验，包含消息气泡列表和底部输入框。进入页面后 SHALL 自动滚动到底部。上滑 SHALL 加载历史消息。
 
