@@ -48,7 +48,7 @@ base-ref: d836b11168a1976c8a3832254c4c74bd3e635018
 - Modify: `backend/app/models/__init__.py`
 - Create: `backend/app/db/seed.py`
 
-- [ ] **Step 1.1：创建 Order 模型**
+- [x] **Step 1.1：创建 Order 模型**
 
 `backend/app/models/order.py`：
 
@@ -69,7 +69,7 @@ class Order(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 ```
 
-- [ ] **Step 1.2：在 `__init__.py` 中导出 Order**
+- [x] **Step 1.2：在 `__init__.py` 中导出 Order**
 
 `backend/app/models/__init__.py`：
 
@@ -83,7 +83,7 @@ from app.models.order import Order
 __all__ = ["User", "Conversation", "Message", "FAQDocument", "Order"]
 ```
 
-- [ ] **Step 1.3：创建种子数据脚本**
+- [x] **Step 1.3：创建种子数据脚本**
 
 `backend/app/db/seed.py`：
 
@@ -112,7 +112,7 @@ def seed_orders(db: Session) -> None:
     logger.info("种子数据: 已插入 %d 条订单", len(SEED_ORDERS))
 ```
 
-- [ ] **Step 1.4：在 lifespan 中调用种子数据**
+- [x] **Step 1.4：在 lifespan 中调用种子数据**
 
 `backend/app/main.py`：
 
@@ -144,7 +144,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
 
 > **说明：** 本 Task 将扁平 state 拆为 `flow` / `skills` / `mcp` 三层。旧字段映射：`intent`→`flow["intent"]`，`confidence`→`flow["confidence"]`，`conversation_id`→`flow["conversation_id"]`，`response`→`flow["response"]`，`refund_info`→`skills["refund"]`，`faq_context`→`skills["faq"]["context"]`。`mcp` 为新加层。
 
-- [ ] **Step 2.1：重构 state.py**
+- [x] **Step 2.1：重构 state.py**
 
 ```python
 from typing import Annotated, Any, TypedDict
@@ -159,7 +159,7 @@ class ConversationState(TypedDict):
     mcp: dict
 ```
 
-- [ ] **Step 2.2：更新 `make_state` 辅助函数（测试用）**
+- [x] **Step 2.2：更新 `make_state` 辅助函数（测试用）**
 
 `backend/tests/test_ai_workflow.py`（替换原 `make_state`）：
 
@@ -175,7 +175,7 @@ def make_state(**overrides) -> ConversationState:
     return defaults
 ```
 
-- [ ] **Step 2.3：更新所有节点函数**
+- [x] **Step 2.3：更新所有节点函数**
 
 `backend/app/domain/ai/workflow/nodes.py`——每个节点中字段访问路径变更：
 
@@ -209,7 +209,7 @@ conv_id = state.get("flow", {}).get("conversation_id")
 return {"flow": {"response": "正在为您转接人工客服，请稍候..."}}
 ```
 
-- [ ] **Step 2.4：更新 graph.py 路由函数**
+- [x] **Step 2.4：更新 graph.py 路由函数**
 
 ```python
 def _route_after_intent(state: ConversationState) -> str:
@@ -227,7 +227,7 @@ def _route_after_refund(state: ConversationState) -> str:
     return END
 ```
 
-- [ ] **Step 2.5：更新 engine.py state 构造**
+- [x] **Step 2.5：更新 engine.py state 构造**
 
 `backend/app/domain/ai/workflow/engine.py`：
 
@@ -262,7 +262,7 @@ yield {"type": "token", "content": result.get("flow", {}).get("response", "")}
 yield {"type": "done"}
 ```
 
-- [ ] **Step 2.6：更新已有测试中的访问路径**
+- [x] **Step 2.6：更新已有测试中的访问路径**
 
 `backend/tests/test_ai_workflow.py` 中所有 `state["intent"]`→`state["flow"]["intent"]`，`state["refund_info"]`→`state["skills"]["refund"]`，`state["faq_context"]`→`state["skills"]["faq"]["context"]`，`state["response"]`→`state["flow"]["response"]`，`state["conversation_id"]`→`state["flow"]["conversation_id"]`。
 
@@ -289,7 +289,7 @@ state = make_state(
 result.get("flow", {}).get("response", "")
 ```
 
-- [ ] **Step 2.7：运行测试确认重构未破坏功能**
+- [x] **Step 2.7：运行测试确认重构未破坏功能**
 
 ```bash
 cd backend && python -m pytest tests/test_ai_workflow.py -v
@@ -306,7 +306,7 @@ cd backend && python -m pytest tests/test_ai_workflow.py -v
 - Create: `backend/app/mcp/__init__.py`
 - Create: `backend/app/mcp/server.py`
 
-- [ ] **Step 3.1：添加 mcp 依赖**
+- [x] **Step 3.1：添加 mcp 依赖**
 
 `backend/pyproject.toml` `dependencies` 中追加：
 
@@ -320,11 +320,11 @@ cd backend && python -m pytest tests/test_ai_workflow.py -v
 cd backend && pip install "mcp>=1.0.0"
 ```
 
-- [ ] **Step 3.2：创建 MCP 包初始化**
+- [x] **Step 3.2：创建 MCP 包初始化**
 
 `backend/app/mcp/__init__.py`：空文件。
 
-- [ ] **Step 3.3：实现 MCP Server**
+- [x] **Step 3.3：实现 MCP Server**
 
 `backend/app/mcp/server.py`：
 
@@ -401,7 +401,7 @@ if __name__ == "__main__":
 **Files:**
 - Create: `backend/app/mcp/client.py`
 
-- [ ] **Step 4.1：实现 MCP Client 单例**
+- [x] **Step 4.1：实现 MCP Client 单例**
 
 `backend/app/mcp/client.py`：
 
@@ -479,7 +479,7 @@ async def get_client() -> MCPClient:
 - Modify: `backend/app/domain/ai/workflow/graph.py`
 - Modify: `backend/app/domain/ai/workflow/engine.py`
 
-- [ ] **Step 5.1：修改 `collect_refund_info` 路由目标**
+- [x] **Step 5.1：修改 `collect_refund_info` 路由目标**
 
 `graph.py` 中 `_route_after_refund` 返回值改为 `"check_order_mcp"`：
 
@@ -491,7 +491,7 @@ def _route_after_refund(state: ConversationState) -> str:
     return END
 ```
 
-- [ ] **Step 5.2：新增 `check_order_mcp` 节点**
+- [x] **Step 5.2：新增 `check_order_mcp` 节点**
 
 `backend/app/domain/ai/workflow/nodes.py`：
 
@@ -524,7 +524,7 @@ async def check_order_mcp(state: ConversationState) -> dict:
     return {"mcp": mcp, "flow": flow}
 ```
 
-- [ ] **Step 5.3：新增 `process_refund_mcp` 节点**
+- [x] **Step 5.3：新增 `process_refund_mcp` 节点**
 
 `backend/app/domain/ai/workflow/nodes.py`：
 
@@ -558,7 +558,7 @@ async def process_refund_mcp(state: ConversationState) -> dict:
     return {"mcp": mcp, "flow": flow}
 ```
 
-- [ ] **Step 5.4：添加 `check_order_mcp` → 条件边路由函数**
+- [x] **Step 5.4：添加 `check_order_mcp` → 条件边路由函数**
 
 `backend/app/domain/ai/workflow/graph.py`：
 
@@ -572,7 +572,7 @@ def _route_after_check_order(state: ConversationState) -> str:
     return END
 ```
 
-- [ ] **Step 5.5：在 `build_chat_graph` 中注册新节点和边**
+- [x] **Step 5.5：在 `build_chat_graph` 中注册新节点和边**
 
 ```python
 def build_chat_graph() -> StateGraph:
@@ -638,7 +638,7 @@ def build_chat_graph() -> StateGraph:
     return workflow.compile()
 ```
 
-- [ ] **Step 5.6：更新 `ChatEngine` 集成 MCP 生命周期**
+- [x] **Step 5.6：更新 `ChatEngine` 集成 MCP 生命周期**
 
 `backend/app/domain/ai/workflow/engine.py`——在 `__init__` 中不再启动 MCP（懒加载由节点自己完成），仅在 `__del__` 中清理：
 
@@ -702,7 +702,7 @@ class ChatEngine:
 **Files:**
 - Modify: `backend/tests/test_ai_workflow.py`
 
-- [ ] **Step 6.1：编写 check_order_mcp 节点单元测试**
+- [x] **Step 6.1：编写 check_order_mcp 节点单元测试**
 
 `backend/tests/test_ai_workflow.py` 中 `TestNodes` 类新增：
 
@@ -768,7 +768,7 @@ async def test_check_order_mcp_error_fallback(self) -> None:
         assert "不可用" in result["flow"]["response"]
 ```
 
-- [ ] **Step 6.2：编写 process_refund_mcp 节点单元测试**
+- [x] **Step 6.2：编写 process_refund_mcp 节点单元测试**
 
 ```python
 @pytest.mark.asyncio
@@ -802,7 +802,7 @@ async def test_process_refund_mcp_failure(self) -> None:
         assert "失败" in result["flow"]["response"]
 ```
 
-- [ ] **Step 6.3：添加图层面路由测试**
+- [x] **Step 6.3：添加图层面路由测试**
 
 `TestGraphRoutingLogic` 类新增：
 
@@ -835,7 +835,7 @@ def test_route_after_check_order_error_fallback(self) -> None:
     assert _route_after_check_order(state) == "process_refund"
 ```
 
-- [ ] **Step 6.4：图编译测试——验证新节点已注册**
+- [x] **Step 6.4：图编译测试——验证新节点已注册**
 
 `TestGraph` 类中更新 `test_has_all_nodes`：
 
@@ -853,7 +853,7 @@ expected = {
 }
 ```
 
-- [ ] **Step 6.5：全量运行测试**
+- [x] **Step 6.5：全量运行测试**
 
 ```bash
 cd backend && python -m pytest tests/ -v
