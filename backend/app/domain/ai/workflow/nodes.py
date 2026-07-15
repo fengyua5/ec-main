@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 async def classify_intent(state: ConversationState) -> dict:
+    refund = state.get("skills", {}).get("refund", {})
+    has_refund_info = bool(refund) and not all(k in refund for k in ("order_no", "reason", "amount"))
+    if has_refund_info:
+        logger.info("意图识别: 退单流程进行中，跳过 LLM 分类，返回 refund")
+        return {"flow": {"intent": "refund", "confidence": 1.0}}
+
     last_user_msg = None
     last_ai_msg = None
     for m in reversed(state["messages"]):

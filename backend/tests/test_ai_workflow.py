@@ -141,6 +141,52 @@ class TestGraph:
             result = await graph.ainvoke(state)
             assert "退款成功" in result.get("flow", {}).get("response", "")
 
+    @pytest.mark.asyncio
+    async def test_refund_multi_turn_flow(self) -> None:
+        """多轮退单流程：提供信息 → 继续收集 → 提交处理，中途不因意图分类偏移而中断"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.MCPClient"
+        ) as mock_mcp_cls:
+            mock_instance = MagicMock()
+            mock_instance.check_order = AsyncMock(
+                return_value={"status": "pending_delivery"}
+            )
+            mock_instance.process_refund = AsyncMock(
+                return_value={"success": True}
+            )
+            mock_mcp_cls.get_instance.return_value = mock_instance
+
+            from langchain_core.messages import HumanMessage
+
+            # Turn 1: 用户有部分退款信息，classify_intent 应跳过 LLM 直接路由到 collect_refund_info
+            state = make_state(
+                flow={"intent": None},
+                skills={"refund": {"order_no": "ORD-PEND-001"}},
+                messages=[HumanMessage(content="商品有质量问题")],
+            )
+            graph = build_chat_graph()
+            result = await graph.ainvoke(state)
+            # 应收集到 reason，并提示输入金额（不直接提交）
+            assert result["skills"]["refund"]["order_no"] == "ORD-PEND-001"
+            assert result["skills"]["refund"]["reason"] == "商品有质量问题"
+            assert "退款金额" in result.get("flow", {}).get("response", "")
+
+            # Turn 2: 用户提供金额，此时 reason 已收集，amount 尚缺
+            state2 = make_state(
+                flow={"intent": None},
+                skills={"refund": result["skills"]["refund"]},
+                messages=[
+                    HumanMessage(content="商品有质量问题"),
+                    HumanMessage(content="99.9"),
+                ],
+            )
+            result2 = await graph.ainvoke(state2)
+            # 应收集到 amount，并路由到 check_order_mcp → process_refund_mcp
+            assert result2["skills"]["refund"]["amount"] == "99.9"
+            assert "退款成功" in result2.get("flow", {}).get("response", "")
+
 
 class TestNodes:
     @pytest.mark.asyncio
@@ -165,6 +211,37 @@ class TestNodes:
             state = make_state(messages=[HumanMessage(content="test")])
             result = await classify_intent(state)
             assert result["flow"]["intent"] == "human"
+
+    @pytest.mark.asyncio
+    async def test_classify_intent_skips_llm_when_refund_in_progress(self) -> None:
+        """退单进行中时，classify_intent 应直接返回 refund，不调 LLM"""
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"refund": {"order_no": "12345"}},
+            messages=[HumanMessage(content="商品有问题")],
+        )
+        result = await classify_intent(state)
+        assert result["flow"]["intent"] == "refund"
+        assert result["flow"]["confidence"] == 1.0
+
+    @pytest.mark.asyncio
+    async def test_classify_intent_proceeds_normally_when_refund_empty(self) -> None:
+        """无退单信息时，classify_intent 应正常调 LLM"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"intent": "faq", "confidence": 0.8}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(messages=[HumanMessage(content="退货政策是什么")])
+            result = await classify_intent(state)
+            assert result["flow"]["intent"] == "faq"
 
     @pytest.mark.asyncio
     async def test_collect_refund_first_turn(self) -> None:
