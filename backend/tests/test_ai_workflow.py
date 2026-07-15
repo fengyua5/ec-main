@@ -6,13 +6,15 @@ import pytest
 from app.domain.ai.workflow.state import ConversationState
 from app.domain.ai.workflow.graph import build_chat_graph
 from app.domain.ai.workflow.nodes import (
-    classify_intent,
-    handle_greeting,
-    retrieve_faq,
     answer_faq,
+    check_order_mcp,
+    classify_intent,
     collect_refund_info,
-    process_refund,
+    handle_greeting,
     handoff_human,
+    process_refund,
+    process_refund_mcp,
+    retrieve_faq,
 )
 from app.domain.ai.workflow.engine import ChatEngine
 
@@ -340,3 +342,128 @@ class TestGraphRoutingLogic:
     def test_route_after_faq_human(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_faq
         assert _route_after_faq(make_state(flow={"intent": "human"})) == "human"
+
+
+class TestMcpNodes:
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_pending_delivery(self) -> None:
+        """pending_delivery 状态应路由到 process_refund_mcp，不设置 flow.response"""
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "pending_delivery", "amount": "199.00", "message": "订单查询成功"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-PENDING-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "pending_delivery"
+            assert "response" not in result.get("flow", {})
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_in_delivery(self) -> None:
+        """in_delivery 状态应拒绝退款，设置 flow.response"""
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "in_delivery", "amount": "199.00", "message": "订单查询成功"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-DELIVERY-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "in_delivery"
+            assert "配送中" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_delivered(self) -> None:
+        """delivered 状态应提示通过售后渠道"""
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "delivered", "amount": "199.00", "message": "订单查询成功"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-DONE-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "delivered"
+            assert "售后" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_not_found(self) -> None:
+        """不存在的订单应提示"""
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "unknown", "message": "订单不存在"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-NOEXIST-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "not_found"
+            assert "未找到订单" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_missing_order_no(self) -> None:
+        """无订单号应提示"""
+        state = make_state(
+            skills={"refund": {"reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+        )
+        result = await check_order_mcp(state)
+        assert result["mcp"]["order_status"] == "not_found"
+        assert "缺少订单号" in result["mcp"].get("error", "")
+        assert "未提供订单号" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_error_fallback(self) -> None:
+        """MCP 异常应降级，设置 flow.intent=human"""
+        mock_client = MagicMock()
+        mock_client.check_order.side_effect = RuntimeError("MCP 连接失败")
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-ERROR-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "error"
+            assert result["flow"]["intent"] == "human"
+
+    @pytest.mark.asyncio
+    async def test_process_refund_mcp_success(self) -> None:
+        """process_refund_mcp 应返回退款成功"""
+        mock_client = MagicMock()
+        mock_client.process_refund = AsyncMock(return_value={"success": True, "message": "退款已处理"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-PENDING-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await process_refund_mcp(state)
+            assert result["mcp"]["refund_success"] is True
+            assert "退款成功" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_process_refund_mcp_failure(self) -> None:
+        """process_refund_mcp 应处理失败情况"""
+        mock_client = MagicMock()
+        mock_client.process_refund = AsyncMock(return_value={"success": False, "message": "订单状态不允许退款"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-DELIVERY-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await process_refund_mcp(state)
+            assert result["mcp"]["refund_success"] is False
+            assert "退款失败" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_process_refund_mcp_exception(self) -> None:
+        """process_refund_mcp 异常应降级转人工"""
+        mock_client = MagicMock()
+        mock_client.process_refund.side_effect = RuntimeError("MCP 内部错误")
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"refund": {"order_no": "ORD-ERROR-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await process_refund_mcp(state)
+            assert result["mcp"]["refund_success"] is False
+            assert result["flow"]["intent"] == "human"
