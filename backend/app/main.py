@@ -12,12 +12,18 @@ from app.api.admin.ai_faq import router as admin_ai_faq_router
 from app.api.admin.ai_chat import router as admin_ai_chat_router
 from app.core.config import settings
 from app.models.user import Base
-from app.db.session import engine
+from app.db.session import engine, SessionLocal
+from app.db.seed import seed_orders
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_orders(db)
+    finally:
+        db.close()
     yield
 
 
