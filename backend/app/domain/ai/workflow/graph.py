@@ -13,16 +13,18 @@ from app.domain.ai.workflow.nodes import (
 
 
 def _route_after_intent(state: ConversationState) -> str:
-    return state.get("intent", "human") or "human"
+    flow = state.get("flow", {})
+    return flow.get("intent", "human") or "human"
 
 
 def _route_after_faq(state: ConversationState) -> str:
-    return state.get("intent", "faq") or "faq"
+    flow = state.get("flow", {})
+    return flow.get("intent", "faq") or "faq"
 
 
 def _route_after_refund(state: ConversationState) -> str:
-    refund_info = state.get("refund_info", {})
-    if all(k in refund_info for k in ("order_no", "reason", "amount")):
+    refund = state.get("skills", {}).get("refund", {})
+    if all(k in refund for k in ("order_no", "reason", "amount")):
         return "process_refund"
     return END
 

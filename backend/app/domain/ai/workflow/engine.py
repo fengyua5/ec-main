@@ -41,21 +41,26 @@ class ChatEngine:
 
         state: ConversationState = {
             "messages": lc_messages,
-            "intent": None,
-            "confidence": 0.0,
-            "refund_info": refund_info,
-            "faq_context": [],
-            "response": "",
-            "conversation_id": conversation_id,
+            "flow": {
+                "intent": None,
+                "confidence": 0.0,
+                "conversation_id": conversation_id,
+                "response": "",
+            },
+            "skills": {
+                "refund": refund_info,
+                "faq": {"context": []},
+            },
+            "mcp": {},
         }
 
         result = await self.graph.ainvoke(state)
 
         self.msg_repo.create(db, conversation_id, "user", user_message)
-        if result.get("response"):
-            self.msg_repo.create(db, conversation_id, "ai", result["response"])
+        if result.get("flow", {}).get("response"):
+            self.msg_repo.create(db, conversation_id, "ai", result["flow"]["response"])
 
-        updated_refund = result.get("refund_info", {})
+        updated_refund = result.get("skills", {}).get("refund", {})
         if updated_refund and updated_refund != refund_info:
             self.msg_repo.create(
                 db,
@@ -65,6 +70,6 @@ class ChatEngine:
                 msg_type="refund_info",
             )
 
-        yield {"type": "intent", "value": result.get("intent")}
-        yield {"type": "token", "content": result.get("response", "")}
+        yield {"type": "intent", "value": result.get("flow", {}).get("intent")}
+        yield {"type": "token", "content": result.get("flow", {}).get("response", "")}
         yield {"type": "done"}

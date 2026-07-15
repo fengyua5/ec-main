@@ -20,12 +20,9 @@ from app.domain.ai.workflow.engine import ChatEngine
 def make_state(**overrides) -> ConversationState:
     defaults: ConversationState = {
         "messages": [],
-        "intent": None,
-        "confidence": 0.0,
-        "refund_info": {},
-        "faq_context": [],
-        "response": "",
-        "conversation_id": None,
+        "flow": {"intent": None, "confidence": 0.0, "conversation_id": None, "response": ""},
+        "skills": {"refund": {}, "faq": {"context": []}},
+        "mcp": {},
     }
     defaults.update(overrides)
     return defaults
@@ -34,19 +31,19 @@ def make_state(**overrides) -> ConversationState:
 class TestState:
     def test_state_defaults(self) -> None:
         state = make_state()
-        assert state["intent"] is None
-        assert state["confidence"] == 0.0
-        assert state["refund_info"] == {}
-        assert state["faq_context"] == []
-        assert state["response"] == ""
-        assert state["conversation_id"] is None
+        assert state["flow"]["intent"] is None
+        assert state["flow"]["confidence"] == 0.0
+        assert state["skills"]["refund"] == {}
+        assert state["skills"]["faq"]["context"] == []
+        assert state["flow"]["response"] == ""
+        assert state["flow"]["conversation_id"] is None
         assert state["messages"] == []
 
     def test_state_with_values(self) -> None:
-        state = make_state(intent="faq", confidence=0.9, response="hello")
-        assert state["intent"] == "faq"
-        assert state["confidence"] == 0.9
-        assert state["response"] == "hello"
+        state = make_state(flow={"intent": "faq", "confidence": 0.9, "response": "hello"})
+        assert state["flow"]["intent"] == "faq"
+        assert state["flow"]["confidence"] == 0.9
+        assert state["flow"]["response"] == "hello"
 
 
 class TestGraph:
@@ -81,11 +78,11 @@ class TestGraph:
             from langchain_core.messages import HumanMessage
             graph = build_chat_graph()
             state = make_state(
-                intent="greeting",
+                flow={"intent": "greeting"},
                 messages=[HumanMessage(content="你好")],
             )
             result = await graph.ainvoke(state)
-            assert result.get("response") != ""
+            assert result.get("flow", {}).get("response") != ""
 
     @pytest.mark.asyncio
     async def test_human_routing(self) -> None:
@@ -104,12 +101,11 @@ class TestGraph:
             from langchain_core.messages import HumanMessage
             graph = build_chat_graph()
             state = make_state(
-                intent="human",
-                conversation_id=1,
+                flow={"intent": "human", "conversation_id": 1},
                 messages=[HumanMessage(content="转人工")],
             )
             result = await graph.ainvoke(state)
-            assert "人工客服" in result.get("response", "")
+            assert "人工客服" in result.get("flow", {}).get("response", "")
 
     @pytest.mark.asyncio
     async def test_refund_collection_routing(self) -> None:
@@ -124,13 +120,13 @@ class TestGraph:
 
             from langchain_core.messages import HumanMessage
             state = make_state(
-                intent="refund",
-                refund_info={"order_no": "123", "reason": "defective", "amount": "50"},
+                flow={"intent": "refund"},
+                skills={"refund": {"order_no": "123", "reason": "defective", "amount": "50"}},
                 messages=[HumanMessage(content="50")],
             )
             graph = build_chat_graph()
             result = await graph.ainvoke(state)
-            assert "退单" in result.get("response", "")
+            assert "退单" in result.get("flow", {}).get("response", "")
 
 
 class TestNodes:
@@ -138,7 +134,7 @@ class TestNodes:
     async def test_handle_greeting(self) -> None:
         state = make_state()
         result = await handle_greeting(state)
-        assert "您好" in result["response"] or "你好" in result["response"]
+        assert "您好" in result["flow"]["response"] or "你好" in result["flow"]["response"]
 
     @pytest.mark.asyncio
     async def test_classify_intent_low_confidence_rollback(self) -> None:
@@ -155,49 +151,49 @@ class TestNodes:
 
             state = make_state(messages=[HumanMessage(content="test")])
             result = await classify_intent(state)
-            assert result["intent"] == "human"
+            assert result["flow"]["intent"] == "human"
 
     @pytest.mark.asyncio
     async def test_collect_refund_first_turn(self) -> None:
-        state = make_state(refund_info={}, messages=[MagicMock(content="我要退款")])
+        state = make_state(skills={"refund": {}}, messages=[MagicMock(content="我要退款")])
         result = await collect_refund_info(state)
-        assert "退款原因" in result["response"]
-        assert result["refund_info"]["order_no"] == "我要退款"
+        assert "退款原因" in result["flow"]["response"]
+        assert result["skills"]["refund"]["order_no"] == "我要退款"
 
     @pytest.mark.asyncio
     async def test_collect_refund_second_turn(self) -> None:
         state = make_state(
-            refund_info={"order_no": "12345"},
+            skills={"refund": {"order_no": "12345"}},
             messages=[MagicMock(content="商品有问题")],
         )
         result = await collect_refund_info(state)
-        assert "退款金额" in result["response"]
-        assert result["refund_info"]["order_no"] == "12345"
-        assert result["refund_info"]["reason"] == "商品有问题"
+        assert "退款金额" in result["flow"]["response"]
+        assert result["skills"]["refund"]["order_no"] == "12345"
+        assert result["skills"]["refund"]["reason"] == "商品有问题"
 
     @pytest.mark.asyncio
     async def test_collect_refund_all_filled(self) -> None:
         state = make_state(
-            refund_info={"order_no": "123", "reason": "bad", "amount": "50"},
+            skills={"refund": {"order_no": "123", "reason": "bad", "amount": "50"}},
             messages=[MagicMock(content="50")],
         )
         result = await collect_refund_info(state)
-        assert "response" not in result or result["response"] == ""
+        assert "flow" not in result
 
     @pytest.mark.asyncio
     async def test_process_refund(self) -> None:
         state = make_state()
         result = await process_refund(state)
-        assert "退单" in result["response"]
+        assert "退单" in result["flow"]["response"]
 
     @pytest.mark.asyncio
     async def test_handoff_human(self) -> None:
         with patch(
             "app.domain.ai.workflow.nodes.ConversationRepository.update_status"
         ):
-            state = make_state(conversation_id=1)
+            state = make_state(flow={"conversation_id": 1})
             result = await handoff_human(state)
-            assert "人工客服" in result["response"]
+            assert "人工客服" in result["flow"]["response"]
 
     @pytest.mark.asyncio
     async def test_retrieve_faq_empty(self) -> None:
@@ -212,8 +208,8 @@ class TestNodes:
 
             state = make_state(messages=[HumanMessage(content="test question")])
             result = await retrieve_faq(state)
-            assert result["intent"] == "human"
-            assert result["faq_context"] == []
+            assert result["flow"]["intent"] == "human"
+            assert result["skills"]["faq"]["context"] == []
 
     @pytest.mark.asyncio
     async def test_retrieve_faq_with_results(self) -> None:
@@ -230,8 +226,8 @@ class TestNodes:
 
             state = make_state(messages=[HumanMessage(content="test question")])
             result = await retrieve_faq(state)
-            assert len(result["faq_context"]) == 1
-            assert "intent" not in result  # intent unchanged
+            assert len(result["skills"]["faq"]["context"]) == 1
+            assert "flow" not in result  # intent unchanged (flow not set)
 
     @pytest.mark.asyncio
     async def test_answer_faq(self) -> None:
@@ -247,11 +243,11 @@ class TestNodes:
             from langchain_core.messages import HumanMessage
 
             state = make_state(
-                faq_context=[{"content": "退货政策 30 天", "score": 0.9}],
+                skills={"faq": {"context": [{"content": "退货政策 30 天", "score": 0.9}]}},
                 messages=[HumanMessage(content="退货政策是什么")],
             )
             result = await answer_faq(state)
-            assert "退货" in result["response"]
+            assert "退货" in result["flow"]["response"]
 
 
 class TestEngine:
@@ -276,9 +272,8 @@ class TestEngine:
             engine.graph = MagicMock()
             engine.graph.ainvoke = AsyncMock(
                 return_value={
-                    "intent": "greeting",
-                    "response": "你好！",
-                    "refund_info": {},
+                    "flow": {"intent": "greeting", "response": "你好！"},
+                    "skills": {"refund": {}},
                 }
             )
 
@@ -298,39 +293,39 @@ class TestEngine:
 class TestGraphRoutingLogic:
     def test_route_after_intent_greeting(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(intent="greeting")) == "greeting"
+        assert _route_after_intent(make_state(flow={"intent": "greeting"})) == "greeting"
 
     def test_route_after_intent_faq(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(intent="faq")) == "faq"
+        assert _route_after_intent(make_state(flow={"intent": "faq"})) == "faq"
 
     def test_route_after_intent_refund(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(intent="refund")) == "refund"
+        assert _route_after_intent(make_state(flow={"intent": "refund"})) == "refund"
 
     def test_route_after_intent_human(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(intent="human")) == "human"
+        assert _route_after_intent(make_state(flow={"intent": "human"})) == "human"
 
     def test_route_after_intent_none_fallback(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(intent=None)) == "human"
+        assert _route_after_intent(make_state(flow={"intent": None})) == "human"
 
     def test_route_after_refund_complete(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_refund
-        state = make_state(refund_info={"order_no": "1", "reason": "a", "amount": "b"})
+        state = make_state(skills={"refund": {"order_no": "1", "reason": "a", "amount": "b"}})
         assert _route_after_refund(state) == "process_refund"
 
     def test_route_after_refund_incomplete(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_refund
         from langgraph.graph import END
-        state = make_state(refund_info={"order_no": "1"})
+        state = make_state(skills={"refund": {"order_no": "1"}})
         assert _route_after_refund(state) == END
 
     def test_route_after_faq_faq(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_faq
-        assert _route_after_faq(make_state(intent="faq")) == "faq"
+        assert _route_after_faq(make_state(flow={"intent": "faq"})) == "faq"
 
     def test_route_after_faq_human(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_faq
-        assert _route_after_faq(make_state(intent="human")) == "human"
+        assert _route_after_faq(make_state(flow={"intent": "human"})) == "human"

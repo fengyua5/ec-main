@@ -1,0 +1,14 @@
+{
+  "change": "order-refund-mcp",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "70aebdcbd77f56a2afa5e133e376d74d3338b739698c86f02a1dabb23b2b8c2d",
+  "files": [
+    { "path": "openspec/changes/order-refund-mcp/proposal.md", "sha256": "dadc83ba9f2129d8a7fe6fc0aa8048c37c35631915157843f31ee18863ee8db7" },
+    { "path": "openspec/changes/order-refund-mcp/design.md", "sha256": "ace46c10fda6f1c389aa56539345e1493baea4833f0bf133ae7076a1176c482a" },
+    { "path": "openspec/changes/order-refund-mcp/tasks.md", "sha256": "2b5a5f2c0234fd0c1d8eaf24e410fc3c167b346541823d0e057b4f4d81488a27" },
+    { "path": "openspec/changes/order-refund-mcp/specs/order-refund-mcp/spec.md", "sha256": "403a6f3e4759ac5eb74cae662a405e9cd2ca124bb640b907cf9d9b4140bd3f7d" }
+  ]
+}
