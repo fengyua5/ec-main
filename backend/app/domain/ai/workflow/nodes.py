@@ -10,6 +10,7 @@ from app.domain.ai.llm.prompts import (
     faq_prompt,
 )
 from app.domain.ai.rag import FaqIndexService, FaqRetriever
+from app.mcp.client import MCPClient
 from app.domain.ai.models.conversation_repo import ConversationRepository
 from app.domain.ai.workflow.state import ConversationState
 
@@ -158,3 +159,48 @@ async def handoff_human(state: ConversationState) -> dict:
             logger.error("转人工: 更新会话 %d 状态失败: %s", conv_id, e)
     logger.info("转人工: 会话 %d 正在转接", conv_id)
     return {"flow": {"response": "正在为您转接人工客服，请稍候..."}}
+
+
+async def check_order_mcp(state: ConversationState) -> dict:
+    refund_info = state.get("skills", {}).get("refund", {})
+    order_id = refund_info.get("order_no", "")
+    if not order_id:
+        return {"mcp": {"order_status": "not_found", "error": "缺少订单号"}, "flow": {"response": "未提供订单号，请重新输入。"}}
+
+    client = MCPClient.get_instance()
+    try:
+        result = await client.check_order(order_id)
+        status = result.get("status", "not_found")
+        logger.info("MCP check_order: order=%s status=%s", order_id, status)
+
+        if status == "pending_delivery":
+            return {"mcp": {"order_status": status}}
+        elif status == "in_delivery":
+            return {"mcp": {"order_status": status}, "flow": {"response": "您的订单正在配送中，暂时无法退款。"}}
+        elif status == "delivered":
+            return {"mcp": {"order_status": status}, "flow": {"response": "订单已签收，请通过售后渠道申请退款。"}}
+        else:
+            return {"mcp": {"order_status": "not_found"}, "flow": {"response": f"未找到订单 {order_id}，请确认订单号是否正确。"}}
+    except Exception as e:
+        logger.error("MCP check_order 异常: %s", e)
+        return {"mcp": {"order_status": "error", "error": str(e)}, "flow": {"intent": "human"}}
+
+
+async def process_refund_mcp(state: ConversationState) -> dict:
+    refund_info = state.get("skills", {}).get("refund", {})
+    order_id = refund_info.get("order_no", "")
+    reason = refund_info.get("reason", "")
+    amount = refund_info.get("amount", "")
+
+    client = MCPClient.get_instance()
+    try:
+        result = await client.process_refund(order_id, reason, amount)
+        if result.get("success"):
+            logger.info("MCP process_refund: order=%s 退款成功", order_id)
+            return {"mcp": {"refund_success": True}, "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"}}
+        else:
+            logger.warning("MCP process_refund: order=%s 退款失败: %s", order_id, result.get("message", ""))
+            return {"mcp": {"refund_success": False}, "flow": {"response": f"退款失败：{result.get('message', '未知错误')}"}}
+    except Exception as e:
+        logger.error("MCP process_refund 异常: %s", e)
+        return {"mcp": {"refund_success": False, "error": str(e)}, "flow": {"intent": "human"}}

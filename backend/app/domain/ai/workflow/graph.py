@@ -3,11 +3,13 @@ from langgraph.graph import StateGraph, END
 from app.domain.ai.workflow.state import ConversationState
 from app.domain.ai.workflow.nodes import (
     answer_faq,
+    check_order_mcp,
     classify_intent,
     collect_refund_info,
     handle_greeting,
     handoff_human,
     process_refund,
+    process_refund_mcp,
     retrieve_faq,
 )
 
@@ -25,7 +27,15 @@ def _route_after_faq(state: ConversationState) -> str:
 def _route_after_refund(state: ConversationState) -> str:
     refund = state.get("skills", {}).get("refund", {})
     if all(k in refund for k in ("order_no", "reason", "amount")):
-        return "process_refund"
+        return "check_order_mcp"
+    return END
+
+
+def _route_after_check(state: ConversationState) -> str:
+    mcp = state.get("mcp", {})
+    status = mcp.get("order_status", "")
+    if status == "pending_delivery":
+        return "process_refund_mcp"
     return END
 
 
@@ -38,6 +48,8 @@ def build_chat_graph() -> StateGraph:
     workflow.add_node("answer_faq", answer_faq)
     workflow.add_node("collect_refund_info", collect_refund_info)
     workflow.add_node("process_refund", process_refund)
+    workflow.add_node("check_order_mcp", check_order_mcp)
+    workflow.add_node("process_refund_mcp", process_refund_mcp)
     workflow.add_node("handoff_human", handoff_human)
 
     workflow.set_entry_point("classify_intent")
@@ -71,9 +83,20 @@ def build_chat_graph() -> StateGraph:
         "collect_refund_info",
         _route_after_refund,
         {
-            "process_refund": "process_refund",
+            "check_order_mcp": "check_order_mcp",
             END: END,
         },
     )
+
+    workflow.add_conditional_edges(
+        "check_order_mcp",
+        _route_after_check,
+        {
+            "process_refund_mcp": "process_refund_mcp",
+            END: END,
+        },
+    )
+
+    workflow.add_edge("process_refund_mcp", END)
 
     return workflow.compile()

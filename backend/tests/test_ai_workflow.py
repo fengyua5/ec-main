@@ -111,7 +111,18 @@ class TestGraph:
     async def test_refund_collection_routing(self) -> None:
         with patch(
             "app.domain.ai.workflow.nodes.intent_prompt"
-        ) as mock_prompt:
+        ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.MCPClient"
+        ) as mock_mcp_cls:
+            mock_instance = MagicMock()
+            mock_instance.check_order = AsyncMock(
+                return_value={"status": "pending_delivery"}
+            )
+            mock_instance.process_refund = AsyncMock(
+                return_value={"success": True}
+            )
+            mock_mcp_cls.get_instance.return_value = mock_instance
+
             mock_chain = AsyncMock()
             mock_chain.ainvoke.return_value = MagicMock(
                 content='{"intent": "refund", "confidence": 0.9}'
@@ -126,7 +137,7 @@ class TestGraph:
             )
             graph = build_chat_graph()
             result = await graph.ainvoke(state)
-            assert "退单" in result.get("flow", {}).get("response", "")
+            assert "退款成功" in result.get("flow", {}).get("response", "")
 
 
 class TestNodes:
@@ -314,7 +325,7 @@ class TestGraphRoutingLogic:
     def test_route_after_refund_complete(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_refund
         state = make_state(skills={"refund": {"order_no": "1", "reason": "a", "amount": "b"}})
-        assert _route_after_refund(state) == "process_refund"
+        assert _route_after_refund(state) == "check_order_mcp"
 
     def test_route_after_refund_incomplete(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_refund
