@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import type { Ref } from "react";
 import type { Message } from "@ec/sdk";
 
 const senderConfig = {
@@ -31,9 +33,16 @@ function RobotIcon() {
 type Props = {
   message: Message;
   isStreaming?: boolean;
+  contentRef?: Ref<HTMLSpanElement>;
+  pendingTextRef?: Ref<HTMLSpanElement>;
 };
 
-export function MessageBubble({ message, isStreaming }: Props) {
+export function MessageBubble({
+  message,
+  isStreaming,
+  contentRef,
+  pendingTextRef,
+}: Props) {
   if (message.msg_type === "system") {
     return (
       <div className="flex justify-center py-1">
@@ -57,8 +66,17 @@ export function MessageBubble({ message, isStreaming }: Props) {
       <div
         className={`max-w-[75%] break-words px-3 py-2 text-sm leading-relaxed ${config.bg} ${config.rounded}`}
       >
-        {message.content}
-        {isStreaming && (
+        <span ref={contentRef}>{message.content}</span>
+        {isStreaming && !message.content && (
+          <span
+            data-placeholder
+            className="inline-flex items-center gap-1.5 text-gray-400"
+          >
+            <Loader2 className="size-3.5 animate-spin" />
+            <span ref={pendingTextRef}>正在查找中...</span>
+          </span>
+        )}
+        {isStreaming && message.content && (
           <span className="inline-block w-[2px] animate-pulse bg-blue-500 ml-0.5 h-4 align-text-bottom" />
         )}
       </div>

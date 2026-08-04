@@ -5,7 +5,14 @@ import { ChatList } from "./components/chat-list";
 import { ChatInput } from "./components/chat-input";
 
 export default function AIChatPage() {
-  const { messages, isStreaming, sendMessage, messagesEndRef } = useSSEChat();
+  const {
+    messages,
+    isStreaming,
+    sendMessage,
+    messagesEndRef,
+    contentRef,
+    pendingTextRef,
+  } = useSSEChat();
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col">
@@ -15,6 +22,8 @@ export default function AIChatPage() {
       <ChatList
         messages={messages}
         isStreaming={isStreaming}
+        contentRef={contentRef}
+        pendingTextRef={pendingTextRef}
         messagesEndRef={messagesEndRef}
       />
       <ChatInput onSend={sendMessage} disabled={isStreaming} />

@@ -1,44 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createApiClient, chatStream, getConversations, getMessages } from "@ec/sdk";
+import { createApiClient, getConversations, getMessages } from "@ec/sdk";
 import type { Message } from "@ec/sdk";
 
 const client = createApiClient({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000",
 });
 
-async function* parseSSE(response: Response) {
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
-
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        const data = line.slice(6);
-        try {
-          yield JSON.parse(data);
-        } catch {
-          // skip malformed JSON
-        }
-      }
-    }
-  }
-}
+type SSEEvent = {
+  type: "status" | "intent" | "token" | "done" | "error";
+  content?: string;
+  value?: unknown;
+};
 
 export function useSSEChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const streamContentRef = useRef("");
+  const streamElRef = useRef<HTMLSpanElement | null>(null);
+  const pendingTextRef = useRef<HTMLSpanElement | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,7 +50,73 @@ export function useSSEChat() {
     }
   }
 
-  async function sendMessage(content: string) {
+  const handleWorkerMessage = useCallback(
+    (e: MessageEvent<SSEEvent>) => {
+      const event = e.data;
+
+      if (event.type === "status") {
+        if (pendingTextRef.current) {
+          pendingTextRef.current.textContent = event.content ?? "";
+        }
+      } else if (event.type === "token") {
+        streamContentRef.current += event.content ?? "";
+        const el = streamElRef.current;
+        if (el) {
+          const placeholder = el.parentElement?.querySelector(
+            "[data-placeholder]",
+          );
+          if (placeholder instanceof HTMLElement) {
+            placeholder.style.display = "none";
+          }
+          el.textContent = streamContentRef.current;
+          scrollToBottom();
+        }
+      } else if (event.type === "done") {
+        const final = streamContentRef.current;
+        streamContentRef.current = "";
+        streamElRef.current = null;
+        setMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.sender === "ai") {
+            updated[updated.length - 1] = { ...last, content: final };
+          }
+          return updated;
+        });
+        setIsStreaming(false);
+      } else if (event.type === "error") {
+        streamContentRef.current = "";
+        streamElRef.current = null;
+        setMessages((prev) => [
+          ...prev.filter((m) => !(m.sender === "ai" && !m.content)),
+          {
+            id: Date.now() + 2,
+            conversation_id: conversationId ?? 0,
+            sender: "ai" as const,
+            content: "消息发送失败，请稍后重试",
+            msg_type: "system" as const,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+        setIsStreaming(false);
+      }
+    },
+    [scrollToBottom],
+  );
+
+  useEffect(() => {
+    const worker = new Worker(
+      new URL("../workers/ai-chat.worker.ts", import.meta.url),
+    );
+    workerRef.current = worker;
+    worker.onmessage = handleWorkerMessage;
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+    };
+  }, [handleWorkerMessage]);
+
+  function sendMessage(content: string) {
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: conversationId ?? 0,
@@ -76,59 +126,23 @@ export function useSSEChat() {
       created_at: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const aiMsg: Message = {
+      id: Date.now() + 1,
+      conversation_id: conversationId ?? 0,
+      sender: "ai",
+      content: "",
+      msg_type: "text",
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMsg, aiMsg]);
     setIsStreaming(true);
+    streamContentRef.current = "";
 
-    try {
-      const response = await chatStream(client, {
-        conversation_id: conversationId,
-        content,
-      });
-
-      if (!response.ok) {
-        throw new Error("Chat request failed");
-      }
-
-      const aiMsg: Message = {
-        id: Date.now() + 1,
-        conversation_id: conversationId ?? 0,
-        sender: "ai",
-        content: "",
-        msg_type: "text",
-        created_at: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
-
-      for await (const event of parseSSE(response)) {
-        if (event.type === "token") {
-          setMessages((prev) => {
-            const updated = [...prev];
-            const last = updated[updated.length - 1];
-            if (last && last.sender === "ai") {
-              updated[updated.length - 1] = { ...last, content: last.content + event.content };
-            }
-            return updated;
-          });
-        } else if (event.type === "done") {
-          break;
-        }
-      }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 2,
-          conversation_id: conversationId ?? 0,
-          sender: "ai" as const,
-          content: "消息发送失败，请稍后重试",
-          msg_type: "system" as const,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setIsStreaming(false);
-    }
+    workerRef.current?.postMessage({
+      url: `${client.baseUrl}/api/v1/web/ai/chat`,
+      payload: { conversation_id: conversationId, content },
+    });
   }
 
   async function loadHistory() {
@@ -147,6 +161,8 @@ export function useSSEChat() {
     sendMessage,
     loadHistory,
     messagesEndRef,
+    contentRef: streamElRef,
+    pendingTextRef,
     conversationId,
   };
 }

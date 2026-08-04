@@ -1,15 +1,24 @@
 "use client";
 
+import type { Ref } from "react";
 import type { Message } from "@ec/sdk";
 import { MessageBubble } from "./message-bubble";
 
 type Props = {
   messages: Message[];
   isStreaming: boolean;
+  contentRef: Ref<HTMLSpanElement>;
+  pendingTextRef: Ref<HTMLSpanElement>;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export function ChatList({ messages, isStreaming, messagesEndRef }: Props) {
+export function ChatList({
+  messages,
+  isStreaming,
+  contentRef,
+  pendingTextRef,
+  messagesEndRef,
+}: Props) {
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center px-4">
@@ -40,13 +49,19 @@ export function ChatList({ messages, isStreaming, messagesEndRef }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto py-3">
-      {messages.map((msg, i) => (
-        <MessageBubble
-          key={msg.id}
-          message={msg}
-          isStreaming={isStreaming && i === messages.length - 1 && msg.sender === "ai"}
-        />
-      ))}
+      {messages.map((msg, i) => {
+        const isStreamingMsg =
+          isStreaming && i === messages.length - 1 && msg.sender === "ai";
+        return (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isStreaming={isStreamingMsg}
+            contentRef={isStreamingMsg ? contentRef : undefined}
+            pendingTextRef={isStreamingMsg ? pendingTextRef : undefined}
+          />
+        );
+      })}
       <div ref={messagesEndRef} />
     </div>
   );
