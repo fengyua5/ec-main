@@ -25,7 +25,7 @@ async def upload_faq(file: UploadFile = File(...)):
 
     try:
         index_service = FaqIndexService()
-        chunk_count = index_service.ingest_markdown(tmp_path, doc_id)
+        chunk_count = index_service.ingest_markdown(tmp_path, doc_id, filename=file.filename)
     finally:
         os.unlink(tmp_path)
 

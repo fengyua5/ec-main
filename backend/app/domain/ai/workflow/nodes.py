@@ -102,9 +102,17 @@ async def answer_faq(state: ConversationState) -> dict:
 
     if not last_user_msg or not faq_context:
         logger.info("FAQ 回答: 缺少上下文或问题，返回兜底")
-        return {"flow": {"response": "抱歉，无法找到相关的 FAQ 信息。"}}
+        return {"flow": {"response": "抱歉，暂时没有找到相关的 FAQ 信息，正在为您转接人工客服，请稍候。"}}
 
-    context_text = "\n\n".join(c["content"] for c in faq_context)
+    context_parts = []
+    for c in faq_context:
+        content = c["content"]
+        source = c.get("source", "")
+        if source:
+            context_parts.append(f"[来源: {source}]\n{content}")
+        else:
+            context_parts.append(content)
+    context_text = "\n\n".join(context_parts)
 
     llm = get_chat_llm(temperature=0, streaming=False)
     chain = faq_prompt | llm

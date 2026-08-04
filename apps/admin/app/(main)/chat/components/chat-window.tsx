@@ -26,7 +26,7 @@ export function ChatWindow({ conversationId, onClose }: ChatWindowProps) {
   useEffect(() => {
     setLoading(true);
     getAdminMessages(client, conversationId)
-      .then((res) => setMessages(res.messages))
+      .then((res) => setMessages(res))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [conversationId]);
@@ -42,7 +42,7 @@ export function ChatWindow({ conversationId, onClose }: ChatWindowProps) {
     setInput("");
     try {
       const res = await replyToConversation(client, conversationId, content);
-      setMessages((prev) => [...prev, res.message]);
+      setMessages((prev) => [...prev, res]);
     } catch {
       // ignore
     } finally {

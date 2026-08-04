@@ -339,6 +339,52 @@ class TestNodes:
             result = await answer_faq(state)
             assert "退货" in result["flow"]["response"]
 
+    @pytest.mark.asyncio
+    async def test_answer_faq_passes_source_evidence(self) -> None:
+        with patch(
+            "app.domain.ai.workflow.nodes.faq_prompt"
+        ) as mock_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content="根据 FAQ，退货政策是 30 天内。（依据：faq.md）"
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(
+                skills={"faq": {"context": [{"content": "退货政策 30 天", "score": 0.9, "source": "faq.md"}]}},
+                messages=[HumanMessage(content="退货政策是什么")],
+            )
+            result = await answer_faq(state)
+            assert "退货" in result["flow"]["response"]
+
+            called_args = mock_chain.ainvoke.call_args
+            assert called_args is not None
+            context_text = called_args[0][0]["context"]
+            assert "[来源: faq.md]" in context_text
+
+    @pytest.mark.asyncio
+    async def test_answer_faq_without_source_uses_plain_content(self) -> None:
+        with patch(
+            "app.domain.ai.workflow.nodes.faq_prompt"
+        ) as mock_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(content="回答")
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(
+                skills={"faq": {"context": [{"content": "退货政策 30 天", "score": 0.9}]}},
+                messages=[HumanMessage(content="退货政策是什么")],
+            )
+            await answer_faq(state)
+
+            called_args = mock_chain.ainvoke.call_args
+            context_text = called_args[0][0]["context"]
+            assert context_text == "退货政策 30 天"
+
 
 class TestEngine:
     @pytest.mark.asyncio
