@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import AsyncGenerator
 
@@ -7,6 +8,9 @@ from sqlalchemy.orm import Session
 from app.domain.ai.models.conversation_repo import ConversationRepository, MessageRepository
 from app.domain.ai.workflow.graph import build_chat_graph
 from app.domain.ai.workflow.state import ConversationState
+
+_TOKEN_CHUNK_SIZE = 4
+_TOKEN_CHUNK_INTERVAL = 0.02
 
 
 class ChatEngine:
@@ -22,6 +26,8 @@ class ChatEngine:
         conversation_id: int,
         user_message: str,
     ) -> AsyncGenerator[dict, None]:
+        yield {"type": "status", "content": "正在查找中..."}
+
         db_messages = self.msg_repo.list_by_conversation(db, conversation_id)
 
         lc_messages: list = []
@@ -71,5 +77,8 @@ class ChatEngine:
             )
 
         yield {"type": "intent", "value": result.get("flow", {}).get("intent")}
-        yield {"type": "token", "content": result.get("flow", {}).get("response", "")}
+        response = result.get("flow", {}).get("response", "")
+        for i in range(0, len(response), _TOKEN_CHUNK_SIZE):
+            yield {"type": "token", "content": response[i:i + _TOKEN_CHUNK_SIZE]}
+            await asyncio.sleep(_TOKEN_CHUNK_INTERVAL)
         yield {"type": "done"}

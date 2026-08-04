@@ -419,11 +419,48 @@ class TestEngine:
             ):
                 events.append(event)
 
-            assert len(events) == 3
-            assert events[0]["type"] == "intent"
-            assert events[1]["type"] == "token"
-            assert events[1]["content"] == "你好！"
-            assert events[2]["type"] == "done"
+            assert events[0]["type"] == "status"
+            assert events[0]["content"] == "正在查找中..."
+            assert events[1]["type"] == "intent"
+            assert "".join(e["content"] for e in events if e["type"] == "token") == "你好！"
+            assert events[-1]["type"] == "done"
+
+    @pytest.mark.asyncio
+    async def test_process_message_streams_tokens_in_chunks(self) -> None:
+        with patch(
+            "app.domain.ai.workflow.engine.MessageRepository"
+        ) as mock_msg_repo, patch(
+            "app.domain.ai.workflow.engine.ConversationRepository"
+        ) as mock_conv_repo, patch(
+            "app.domain.ai.workflow.graph.StateGraph"
+        ):
+            mock_msg_instance = MagicMock()
+            mock_msg_instance.list_by_conversation.return_value = []
+            mock_msg_instance.create.return_value = MagicMock()
+            mock_msg_repo.return_value = mock_msg_instance
+            mock_conv_repo.return_value = MagicMock()
+
+            from sqlalchemy.orm import Session
+
+            engine = ChatEngine()
+            engine.graph = MagicMock()
+            engine.graph.ainvoke = AsyncMock(
+                return_value={
+                    "flow": {"intent": "faq", "response": "一二三四五六七八九十"},
+                    "skills": {"refund": {}},
+                }
+            )
+
+            tokens = []
+            async for event in engine.process_message(
+                MagicMock(spec=Session), 1, "退货政策是什么"
+            ):
+                if event["type"] == "token":
+                    tokens.append(event["content"])
+
+            assert len(tokens) > 1
+            assert max(len(t) for t in tokens) <= 4
+            assert "".join(tokens) == "一二三四五六七八九十"
 
 
 class TestGraphRoutingLogic:
