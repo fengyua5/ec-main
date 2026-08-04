@@ -2,6 +2,8 @@
 comet_change: add-email-auth
 role: technical-design
 canonical_spec: openspec
+archived-with: 2026-07-15-add-email-auth
+status: final
 ---
 
 # 邮箱登录认证设计

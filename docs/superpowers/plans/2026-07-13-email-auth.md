@@ -2,6 +2,7 @@
 change: add-email-auth
 design-doc: docs/superpowers/specs/2026-07-13-email-auth-design.md
 base-ref: 49b3c9a3fb4a4148b6a68d52aae048db2f0d37de
+archived-with: 2026-07-15-add-email-auth
 ---
 
 # Email Auth 实施计划
@@ -14,6 +15,7 @@ base-ref: 49b3c9a3fb4a4148b6a68d52aae048db2f0d37de
 
 **Tech Stack:** FastAPI + SQLAlchemy + SQLite, passlib+bcrypt, python-jose, Next.js + React 19, Tailwind v4
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 目录结构
@@ -43,6 +45,7 @@ backend/app/
     └── user.py                 # User SQLAlchemy 模型
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 1. 后端认证基础设施
@@ -284,6 +287,7 @@ git add backend/app/core/security.py backend/app/core/config.py
 git commit -m "feat: add password hashing, JWT creation/verification, and cookie utilities"
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 2. Domain 层（共享业务逻辑）
@@ -433,6 +437,7 @@ git add backend/app/domain/
 git commit -m "feat: add auth domain layer with business logic, schemas, and auth dependency"
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 3. API 路由（Web + Admin 隔离）
@@ -694,6 +699,7 @@ git add backend/tests/test_auth.py
 git commit -m "test: add auth API tests covering register, login, logout, me, error cases"
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 4. SDK Auth 方法
@@ -801,6 +807,7 @@ git add packages/sdk/src/auth.ts packages/sdk/src/index.ts
 git commit -m "feat: add auth methods to SDK"
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 5. 前端登录注册页面
@@ -1145,6 +1152,7 @@ Expected: No errors
 git status
 ```
 
+archived-with: 2026-07-15-add-email-auth
 ---
 
 ## 6. 验证
