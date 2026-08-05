@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.config import settings
 from app.domain.ai.llm.tracing import (
@@ -101,3 +101,97 @@ def test_record_retrieval_uses_trace_id(monkeypatch) -> None:
             mock_span.end.assert_called_once()
     finally:
         _reset_langfuse()
+
+
+def test_process_message_passes_handler_and_records_retrieval() -> None:
+    import asyncio
+
+    from sqlalchemy.orm import Session
+
+    from app.domain.ai.workflow.engine import ChatEngine
+
+    mock_handler = MagicMock()
+    with patch(
+        "app.domain.ai.workflow.engine.create_chat_trace",
+        return_value=(mock_handler, "trace-123"),
+    ), patch("app.domain.ai.workflow.engine.record_retrieval") as mock_record, \
+         patch("app.domain.ai.workflow.engine.MessageRepository") as mock_msg_repo, \
+         patch("app.domain.ai.workflow.engine.ConversationRepository"), \
+         patch("app.domain.ai.workflow.graph.StateGraph"):
+        mock_msg_instance = MagicMock()
+        mock_msg_instance.list_by_conversation.return_value = []
+        mock_msg_instance.create.return_value = MagicMock()
+        mock_msg_repo.return_value = mock_msg_instance
+
+        engine = ChatEngine()
+        engine.graph = MagicMock()
+        engine.graph.ainvoke = AsyncMock(
+            return_value={
+                "flow": {"intent": "faq", "response": "答案"},
+                "skills": {
+                    "faq": {"context": [
+                        {"content": "退货 30 天", "score": 0.9, "source": "faq.md"}
+                    ]}
+                },
+            }
+        )
+
+        events = []
+
+        async def _collect() -> None:
+            async for e in engine.process_message(
+                MagicMock(spec=Session), 1, "退货政策是什么"
+            ):
+                events.append(e)
+
+        asyncio.run(_collect())
+
+        assert engine.graph.ainvoke.call_args.kwargs["config"]["callbacks"] == [
+            mock_handler
+        ]
+        mock_record.assert_called_once_with(
+            "trace-123",
+            query="退货政策是什么",
+            intent="faq",
+            hits=[{"content": "退货 30 天", "score": 0.9, "source": "faq.md"}],
+        )
+        assert events[0]["type"] == "status"
+
+
+def test_process_message_skips_tracing_when_disabled() -> None:
+    import asyncio
+
+    from sqlalchemy.orm import Session
+
+    from app.domain.ai.workflow.engine import ChatEngine
+
+    with patch(
+        "app.domain.ai.workflow.engine.create_chat_trace",
+        return_value=(None, None),
+    ), patch("app.domain.ai.workflow.engine.record_retrieval") as mock_record, \
+         patch("app.domain.ai.workflow.engine.MessageRepository") as mock_msg_repo, \
+         patch("app.domain.ai.workflow.engine.ConversationRepository"), \
+         patch("app.domain.ai.workflow.graph.StateGraph"):
+        mock_msg_instance = MagicMock()
+        mock_msg_instance.list_by_conversation.return_value = []
+        mock_msg_instance.create.return_value = MagicMock()
+        mock_msg_repo.return_value = mock_msg_instance
+
+        engine = ChatEngine()
+        engine.graph = MagicMock()
+        engine.graph.ainvoke = AsyncMock(
+            return_value={"flow": {"intent": "greeting", "response": "你好"}, "skills": {"faq": {"context": []}}}
+        )
+
+        events = []
+
+        async def _collect() -> None:
+            async for e in engine.process_message(
+                MagicMock(spec=Session), 1, "你好"
+            ):
+                events.append(e)
+
+        asyncio.run(_collect())
+
+        assert "config" not in engine.graph.ainvoke.call_args.kwargs
+        mock_record.assert_not_called()

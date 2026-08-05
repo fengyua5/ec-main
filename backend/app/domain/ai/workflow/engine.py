@@ -1,13 +1,17 @@
 import asyncio
 import json
+import logging
 from collections.abc import AsyncGenerator
 
 from langchain_core.messages import AIMessage, HumanMessage
 from sqlalchemy.orm import Session
 
+from app.domain.ai.llm.tracing import create_chat_trace, record_retrieval
 from app.domain.ai.models.conversation_repo import ConversationRepository, MessageRepository
 from app.domain.ai.workflow.graph import build_chat_graph
 from app.domain.ai.workflow.state import ConversationState
+
+logger = logging.getLogger(__name__)
 
 _TOKEN_CHUNK_SIZE = 4
 _TOKEN_CHUNK_INTERVAL = 0.02
@@ -19,6 +23,26 @@ class ChatEngine:
         self.graph = build_chat_graph()
         self.conv_repo = ConversationRepository()
         self.msg_repo = MessageRepository()
+
+    def _record_retrieval(self, trace_id: str, result: dict, query: str) -> None:
+        try:
+            context = result.get("skills", {}).get("faq", {}).get("context", [])
+            hits = [
+                {
+                    "content": c.get("content", ""),
+                    "score": c.get("score", 0.0),
+                    "source": c.get("source", ""),
+                }
+                for c in context
+            ]
+            record_retrieval(
+                trace_id,
+                query=query,
+                intent=result.get("flow", {}).get("intent"),
+                hits=hits,
+            )
+        except Exception as e:
+            logger.warning("Langfuse 记录检索元数据失败: %s", e)
 
     async def process_message(
         self,
@@ -60,7 +84,9 @@ class ChatEngine:
             "mcp": {},
         }
 
-        result = await self.graph.ainvoke(state)
+        handler, trace_id = create_chat_trace()
+        kwargs = {"config": {"callbacks": [handler]}} if handler is not None else {}
+        result = await self.graph.ainvoke(state, **kwargs)
 
         self.msg_repo.create(db, conversation_id, "user", user_message)
         if result.get("flow", {}).get("response"):
@@ -75,6 +101,9 @@ class ChatEngine:
                 json.dumps(updated_refund, ensure_ascii=False),
                 msg_type="refund_info",
             )
+
+        if trace_id is not None:
+            self._record_retrieval(trace_id, result, user_message)
 
         yield {"type": "intent", "value": result.get("flow", {}).get("intent")}
         response = result.get("flow", {}).get("response", "")
