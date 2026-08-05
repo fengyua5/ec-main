@@ -1,0 +1,36 @@
+services:
+  langfuse-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfuse-db-data:/var/lib/postgresql/data
+
+  langfuse:
+    image: langfuse/langfuse:2
+    restart: always
+    depends_on:
+      - langfuse-db
+    ports:
+      - "5000:3000"
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:5000
+      NEXTAUTH_SECRET: dev-nextauth-secret-change-me
+      SALT: dev-salt-change-me
+      ENCRYPTION_KEY: <openssl-rand-hex-32-bytes>
+      LANGFUSE_INIT_ORG_ID: ec-main
+      LANGFUSE_INIT_ORG_NAME: ec-main
+      LANGFUSE_INIT_PROJECT_ID: ec-main-project
+      LANGFUSE_INIT_PROJECT_NAME: ec-main
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-dev-langfuse
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-dev-langfuse
+      LANGFUSE_INIT_USER_EMAIL: admin@localhost
+      LANGFUSE_INIT_USER_PASSWORD: admin123
+      LANGFUSE_INIT_ACTION: create_org_project_api_key
+
+volumes:
+  langfuse-db-data:
