@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_embed_model: str = "bge-m3:latest"
     rag_min_vector_score: float = 0.45
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    langfuse_host: str = "http://localhost:5000"
 
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), env_prefix="")
 
