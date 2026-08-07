@@ -152,7 +152,7 @@ class AfterSaleCase(Base):
 
 ### 写入路径
 
-`process_refund_mcp` 退款成功后（或 `cancel_order_mcp` 取消成功后）调用 `create_case`。buyer_id 从 `check_order` 返回的订单信息中获取（已有 `check_order` 完整字段含 `buyer_id`）。
+`process_refund_mcp` 退款成功后调用 `create_case`（case_type=`refund`）；`cancel_order_mcp` 取消成功后同样调用 `create_case`（case_type=`cancel`）。buyer_id 从 `check_order` 返回的订单信息中获取（已有 `check_order` 完整字段含 `buyer_id`）。update_order 暂不创建 case。
 
 ## MCP 扩展
 
