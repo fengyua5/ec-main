@@ -51,6 +51,18 @@ async def test_update_order_status_illegal() -> None:
 
 
 @pytest.mark.anyio
+async def test_update_order_status_in_delivery_rejected() -> None:
+    db = SessionLocal()
+    db.add(Order(order_no="ORD-MCP-003", buyer_id=1, amount="100.00", status="in_delivery"))
+    db.commit()
+    db.close()
+
+    result = await call_tool("update_order_status", {"order_id": "ORD-MCP-003", "status": "delivered"})
+    payload = json.loads(result[0].text)
+    assert payload["success"] is False
+
+
+@pytest.mark.anyio
 async def test_update_order_status_not_found() -> None:
     result = await call_tool("update_order_status", {"order_id": "ORD-NOPE", "status": "pending_delivery"})
     payload = json.loads(result[0].text)
