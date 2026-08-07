@@ -100,7 +100,7 @@ class ChatEngine:
             self.msg_repo.create(db, conversation_id, "ai", result["flow"]["response"])
 
         updated_refund = result.get("skills", {}).get("refund", {})
-        if updated_refund and updated_refund != refund_info:
+        if updated_refund != refund_info:
             self.msg_repo.create(
                 db,
                 conversation_id,

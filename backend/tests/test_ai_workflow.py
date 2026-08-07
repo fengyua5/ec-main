@@ -137,7 +137,7 @@ class TestGraph:
             "app.domain.ai.workflow.nodes.MCPClient"
         ) as mock_mcp_cls, patch(
             "app.domain.ai.workflow.nodes.create_case"
-        ):
+        ) as mock_create_case:
             mock_instance = MagicMock()
             mock_instance.check_order = AsyncMock(
                 return_value={"status": "pending_delivery", "buyer_id": 7}
@@ -182,7 +182,7 @@ class TestGraph:
             assert "确认退款" in result2.get("flow", {}).get("response", "")
             mock_instance.process_refund.assert_not_called()
 
-            # Turn 3: 确认 → 退款成功
+            # Turn 3: 确认 → 退款成功，以持久化的 buyer_id 落售后 case
             result3 = await graph.ainvoke(
                 make_state(
                     skills={"refund": result2["skills"]["refund"], "after_sale": result2["skills"]["after_sale"]},
@@ -191,6 +191,8 @@ class TestGraph:
             )
             assert result3["mcp"]["refund_success"] is True
             assert "退款成功" in result3.get("flow", {}).get("response", "")
+            mock_create_case.assert_called_once()
+            assert mock_create_case.call_args.kwargs["buyer_id"] == 7
 
     @pytest.mark.asyncio
     async def test_refund_requires_confirmation(self) -> None:
@@ -203,7 +205,7 @@ class TestGraph:
             "app.domain.ai.workflow.nodes.MCPClient"
         ) as mock_mcp_cls, patch(
             "app.domain.ai.workflow.nodes.create_case"
-        ):
+        ) as mock_create_case:
             mock_instance = MagicMock()
             mock_instance.check_order = AsyncMock(
                 return_value={"status": "pending_delivery", "buyer_id": 7}
@@ -238,7 +240,7 @@ class TestGraph:
             assert "确认退款" in result.get("flow", {}).get("response", "")
             mock_instance.process_refund.assert_not_called()
 
-            # Turn 2: 确认 → 退款成功
+            # Turn 2: 确认 → 退款成功，以持久化的 buyer_id 落售后 case
             state2 = make_state(
                 skills={"refund": result["skills"]["refund"], "after_sale": result["skills"]["after_sale"]},
                 messages=[HumanMessage(content="确认退款"), HumanMessage(content="确认")],
@@ -246,6 +248,8 @@ class TestGraph:
             result2 = await graph.ainvoke(state2)
             assert result2["mcp"]["refund_success"] is True
             assert "退款成功" in result2.get("flow", {}).get("response", "")
+            mock_create_case.assert_called_once()
+            assert mock_create_case.call_args.kwargs["buyer_id"] == 7
 
     @pytest.mark.asyncio
     async def test_refund_multi_turn_flow(self) -> None:
@@ -258,7 +262,7 @@ class TestGraph:
             "app.domain.ai.workflow.nodes.MCPClient"
         ) as mock_mcp_cls, patch(
             "app.domain.ai.workflow.nodes.create_case"
-        ):
+        ) as mock_create_case:
             mock_instance = MagicMock()
             mock_instance.check_order = AsyncMock(
                 return_value={"status": "pending_delivery", "buyer_id": 7}
@@ -302,7 +306,7 @@ class TestGraph:
             assert result2["skills"]["refund"]["amount"] == "商品坏了 199"
             assert "确认退款" in result2.get("flow", {}).get("response", "")
 
-            # Turn 3: 确认 → 退款成功
+            # Turn 3: 确认 → 退款成功，以持久化的 buyer_id 落售后 case
             result3 = await graph.ainvoke(
                 make_state(
                     skills={"refund": result2["skills"]["refund"], "after_sale": result2["skills"]["after_sale"]},
@@ -311,6 +315,8 @@ class TestGraph:
             )
             assert result3["mcp"]["refund_success"] is True
             assert "退款成功" in result3.get("flow", {}).get("response", "")
+            mock_create_case.assert_called_once()
+            assert mock_create_case.call_args.kwargs["buyer_id"] == 7
 
     @pytest.mark.asyncio
     async def test_cancel_order_full_flow(self) -> None:
@@ -323,7 +329,7 @@ class TestGraph:
             "app.domain.ai.workflow.nodes.MCPClient"
         ) as mock_mcp_cls, patch(
             "app.domain.ai.workflow.nodes.create_case"
-        ):
+        ) as mock_create_case:
             mock_instance = MagicMock()
             mock_instance.check_order = AsyncMock(
                 return_value={"status": "pending_delivery", "buyer_id": 7}
@@ -356,7 +362,7 @@ class TestGraph:
             assert "确认" in result.get("flow", {}).get("response", "")
             assert result["skills"]["after_sale"]["order_no"] == "ORD-777"
 
-            # Turn 2: 确认 → 取消成功
+            # Turn 2: 确认 → 取消成功，以持久化的 buyer_id 落售后 case
             result2 = await graph.ainvoke(
                 make_state(
                     skills={"after_sale": result["skills"]["after_sale"]},
@@ -365,6 +371,8 @@ class TestGraph:
             )
             assert result2["mcp"]["cancel_success"] is True
             assert "取消" in result2.get("flow", {}).get("response", "")
+            mock_create_case.assert_called_once()
+            assert mock_create_case.call_args.kwargs["buyer_id"] == 7
 
     @pytest.mark.asyncio
     async def test_cancel_order_rejected_when_in_delivery(self) -> None:
@@ -492,6 +500,63 @@ class TestGraph:
             result2 = await graph.ainvoke(state2)
             assert result2["mcp"]["update_success"] is True
             assert "ORD-456" in result2.get("flow", {}).get("response", "")
+
+    @pytest.mark.asyncio
+    async def test_confirm_after_sale_no_then_new_refund(self) -> None:
+        """退款被否后 refund/after_sale 槽位应清空，新一轮退款需重新收集原因/金额，不复用旧值"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_sub_prompt, patch(
+            "app.domain.ai.workflow.nodes.MCPClient"
+        ) as mock_mcp_cls, patch(
+            "app.domain.ai.workflow.nodes.create_case"
+        ):
+            mock_instance = MagicMock()
+            mock_instance.check_order = AsyncMock(
+                return_value={"status": "pending_delivery", "buyer_id": 7}
+            )
+            mock_mcp_cls.get_instance.return_value = mock_instance
+
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"intent": "after_sale", "confidence": 0.9}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            mock_sub_chain = AsyncMock()
+            mock_sub_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "refund", "confidence": 0.9}'
+            )
+            mock_sub_prompt.__or__.return_value = mock_sub_chain
+
+            from langchain_core.messages import HumanMessage
+
+            graph = build_chat_graph()
+
+            # 第一轮：退款信息完整，确认时回复「否」→ refund/after_sale 槽位应清空
+            result1 = await graph.ainvoke(
+                make_state(
+                    skills={"after_sale": {"sub_intent": "refund", "order_no": "ORD-1"}, "refund": {"order_no": "ORD-1", "reason": "商品坏了", "amount": "199"}},
+                    messages=[HumanMessage(content="退款 ORD-1"), HumanMessage(content="商品坏了 199"), HumanMessage(content="否")],
+                )
+            )
+            assert "order_no" not in result1["skills"]["after_sale"]
+            assert "sub_intent" not in result1["skills"]["after_sale"]
+            assert result1["skills"]["refund"] == {}
+
+            # 第二轮：新一轮退款（不同订单/原因），应重新收集原因，不保留旧值
+            result2 = await graph.ainvoke(
+                make_state(
+                    skills={"refund": result1["skills"]["refund"], "after_sale": result1["skills"]["after_sale"]},
+                    messages=[HumanMessage(content="退款 ORD-1"), HumanMessage(content="商品坏了 199"), HumanMessage(content="否"), HumanMessage(content="退款 ORD-2 不想要了")],
+                )
+            )
+            assert result2["skills"]["refund"]["order_no"] == "ORD-2"
+            assert result2["skills"]["refund"]["reason"] == "退款 ORD-2 不想要了"
+            assert "amount" not in result2["skills"]["refund"]
+            assert "退款金额" in result2.get("flow", {}).get("response", "")
 
 
 class TestNodes:
@@ -824,7 +889,7 @@ class TestNodes:
         from langchain_core.messages import HumanMessage
 
         state = make_state(
-            skills={"after_sale": {"sub_intent": "cancel_order", "order_no": "ORD-1"}},
+            skills={"after_sale": {"sub_intent": "cancel_order", "order_no": "ORD-1"}, "refund": {"order_no": "ORD-1", "reason": "商品坏了", "amount": "199"}},
             messages=[HumanMessage(content="不要")],
         )
         result = await confirm_after_sale(state)
@@ -832,6 +897,7 @@ class TestNodes:
         assert "order_no" not in result["skills"]["after_sale"]
         assert "sub_intent" not in result["skills"]["after_sale"]
         assert "confirmed" not in result["skills"]["after_sale"]
+        assert result["skills"]["refund"] == {}
 
     @pytest.mark.asyncio
     async def test_confirm_after_sale_asks_again(self) -> None:
@@ -1056,6 +1122,41 @@ class TestEngine:
             assert max(len(t) for t in tokens) <= 4
             assert "".join(tokens) == "一二三四五六七八九十"
 
+    @pytest.mark.asyncio
+    async def test_process_message_persists_cleared_refund_and_after_sale(self) -> None:
+        """确认「否」清空 refund/after_sale 后，engine 应持久化空槽位以清除跨轮残留"""
+        with patch(
+            "app.domain.ai.workflow.engine.MessageRepository"
+        ) as mock_msg_repo, patch(
+            "app.domain.ai.workflow.engine.ConversationRepository"
+        ) as mock_conv_repo, patch(
+            "app.domain.ai.workflow.graph.StateGraph"
+        ):
+            prev_refund = MagicMock(sender="system", msg_type="refund_info", content=json.dumps({"order_no": "ORD-1", "reason": "商品坏了", "amount": "199"}, ensure_ascii=False))
+            prev_after_sale = MagicMock(sender="system", msg_type="after_sale_info", content=json.dumps({"sub_intent": "refund", "order_no": "ORD-1"}, ensure_ascii=False))
+            mock_msg_instance = MagicMock()
+            mock_msg_instance.list_by_conversation.return_value = [prev_refund, prev_after_sale]
+            mock_msg_instance.create.return_value = MagicMock()
+            mock_msg_repo.return_value = mock_msg_instance
+            mock_conv_repo.return_value = MagicMock()
+
+            engine = ChatEngine()
+            engine.graph = MagicMock()
+            engine.graph.ainvoke = AsyncMock(
+                return_value={
+                    "flow": {"intent": "after_sale", "response": "已为您取消「退款」操作。"},
+                    "skills": {"refund": {}, "after_sale": {}},
+                }
+            )
+
+            from sqlalchemy.orm import Session
+
+            async for _ in engine.process_message(MagicMock(spec=Session), 1, "否"):
+                pass
+
+            system_creates = [c for c in mock_msg_instance.create.call_args_list if c.args[2] == "system"]
+            assert {c.kwargs.get("msg_type") for c in system_creates} == {"refund_info", "after_sale_info"}
+
 
 class TestGraphRoutingLogic:
     def test_route_after_intent_greeting(self) -> None:
@@ -1168,7 +1269,7 @@ class TestGraphRoutingLogic:
 class TestMcpNodes:
     @pytest.mark.asyncio
     async def test_check_order_mcp_pending_delivery(self) -> None:
-        """pending_delivery 状态应记录 buyer_id 并路由到确认环节，不设置 flow.response"""
+        """pending_delivery 状态应记录 buyer_id 到持久化槽位并路由到确认环节，不设置 flow.response"""
         mock_client = MagicMock()
         mock_client.check_order = AsyncMock(return_value={"status": "pending_delivery", "buyer_id": 7, "amount": "199.00", "message": "订单查询成功"})
 
@@ -1179,6 +1280,7 @@ class TestMcpNodes:
             result = await check_order_mcp(state)
             assert result["mcp"]["order_status"] == "pending_delivery"
             assert result["mcp"]["order_buyer_id"] == 7
+            assert result["skills"]["after_sale"]["order_buyer_id"] == 7
             assert "response" not in result.get("flow", {})
 
     @pytest.mark.asyncio
@@ -1250,19 +1352,25 @@ class TestMcpNodes:
 
     @pytest.mark.asyncio
     async def test_process_refund_mcp_success(self) -> None:
-        """process_refund_mcp 应返回退款成功"""
+        """process_refund_mcp 应返回退款成功，并以持久化的 buyer_id 落售后 case"""
         mock_client = MagicMock()
         mock_client.process_refund = AsyncMock(return_value={"success": True, "message": "退款已处理"})
 
         with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client), patch(
             "app.domain.ai.workflow.nodes.create_case"
-        ):
+        ) as mock_create_case:
             state = make_state(
-                skills={"refund": {"order_no": "ORD-PENDING-001", "reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+                skills={"refund": {"order_no": "ORD-PENDING-001", "reason": "不想要了", "amount": "199.00"}, "after_sale": {"order_buyer_id": 7}, "faq": {"context": []}},
             )
             result = await process_refund_mcp(state)
             assert result["mcp"]["refund_success"] is True
             assert "退款成功" in result["flow"]["response"]
+            mock_create_case.assert_called_once()
+            call_kwargs = mock_create_case.call_args.kwargs
+            assert call_kwargs["order_no"] == "ORD-PENDING-001"
+            assert call_kwargs["buyer_id"] == 7
+            assert call_kwargs["case_type"] == "refund"
+            assert "order_buyer_id" not in result["skills"]["after_sale"]
 
     @pytest.mark.asyncio
     async def test_process_refund_mcp_failure(self) -> None:

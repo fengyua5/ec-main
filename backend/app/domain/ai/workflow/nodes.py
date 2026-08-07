@@ -199,7 +199,7 @@ async def handoff_human(state: ConversationState) -> dict:
 
 
 async def check_order_mcp(state: ConversationState) -> dict:
-    after_sale = state.get("skills", {}).get("after_sale", {})
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
     sub_intent = after_sale.get("sub_intent", "refund")
     order_id = after_sale.get("order_no", "")
     if not order_id:
@@ -213,7 +213,10 @@ async def check_order_mcp(state: ConversationState) -> dict:
         logger.info("MCP check_order: order=%s status=%s", order_id, status)
 
         if status in ("pending_payment", "pending_delivery"):
-            return {"mcp": {"order_status": status, "order_buyer_id": buyer_id}}
+            after_sale["order_buyer_id"] = buyer_id
+            skills = dict(state.get("skills", {}))
+            skills["after_sale"] = after_sale
+            return {"mcp": {"order_status": status, "order_buyer_id": buyer_id}, "skills": skills}
         if status in ("in_delivery", "delivered"):
             if sub_intent == "refund":
                 msg = "您的订单已发货/签收，暂时无法退款，请通过售后渠道处理。"
@@ -239,7 +242,8 @@ async def process_refund_mcp(state: ConversationState) -> dict:
         result = await client.process_refund(order_id, reason, amount)
         if result.get("success"):
             logger.info("MCP process_refund: order=%s 退款成功", order_id)
-            buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
+            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            buyer_id = after_sale.get("order_buyer_id", 0) or state.get("mcp", {}).get("order_buyer_id", 0)
             try:
                 db = SessionLocal()
                 try:
@@ -248,14 +252,17 @@ async def process_refund_mcp(state: ConversationState) -> dict:
                     db.close()
             except Exception as case_e:
                 logger.error("售后 case 落库失败: %s", case_e)
-            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
             after_sale.pop("sub_intent", None)
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
+            after_sale.pop("order_buyer_id", None)
+            skills = dict(state.get("skills", {}))
+            skills["after_sale"] = after_sale
+            skills["refund"] = {}
             return {
                 "mcp": {"refund_success": True},
                 "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"},
-                "skills": {"after_sale": after_sale},
+                "skills": skills,
             }
         else:
             logger.warning("MCP process_refund: order=%s 退款失败: %s", order_id, result.get("message", ""))
@@ -365,11 +372,12 @@ async def confirm_after_sale(state: ConversationState) -> dict:
         after_sale.pop("confirmed", None)
         after_sale.pop("order_no", None)
         after_sale.pop("sub_intent", None)
+        after_sale.pop("order_buyer_id", None)
         logger.info("售后确认: 用户取消操作 %s", sub_intent)
         label = _SUB_INTENT_LABELS.get(sub_intent, sub_intent)
         return {
             "flow": {"response": f"已为您取消「{label}」操作。"},
-            "skills": {"after_sale": after_sale, "refund": refund},
+            "skills": {"after_sale": after_sale, "refund": {}},
         }
 
     if sub_intent == "refund":
@@ -395,7 +403,8 @@ async def cancel_order_mcp(state: ConversationState) -> dict:
         result = await client.update_order_status(order_id, "cancelled")
         if result.get("success"):
             logger.info("MCP cancel_order: order=%s 已取消", order_id)
-            buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
+            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            buyer_id = after_sale.get("order_buyer_id", 0) or state.get("mcp", {}).get("order_buyer_id", 0)
             try:
                 db = SessionLocal()
                 try:
@@ -404,14 +413,16 @@ async def cancel_order_mcp(state: ConversationState) -> dict:
                     db.close()
             except Exception as case_e:
                 logger.error("售后 case 落库失败: %s", case_e)
-            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
             after_sale.pop("sub_intent", None)
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
+            after_sale.pop("order_buyer_id", None)
+            skills = dict(state.get("skills", {}))
+            skills["after_sale"] = after_sale
             return {
                 "mcp": {"cancel_success": True},
                 "flow": {"response": f"订单 {order_id} 已成功取消。"},
-                "skills": {"after_sale": after_sale},
+                "skills": skills,
             }
         else:
             logger.warning("MCP cancel_order: order=%s 取消失败: %s", order_id, result.get("message", ""))
