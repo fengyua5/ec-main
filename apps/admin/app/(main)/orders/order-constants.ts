@@ -21,7 +21,7 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
 export const ORDER_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   pending_payment: ["pending_delivery", "cancelled"],
   pending_delivery: ["in_delivery", "cancelled", "refunded"],
-  in_delivery: ["delivered"],
+  in_delivery: [],
 };
 
 export function getNextStatuses(current: OrderStatus): OrderStatus[] {

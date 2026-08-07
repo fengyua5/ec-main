@@ -14,7 +14,7 @@ ORDER_STATUSES = [
 VALID_TRANSITIONS: dict[str, set[str]] = {
     "pending_payment": {"pending_delivery", "cancelled"},
     "pending_delivery": {"in_delivery", "cancelled", "refunded"},
-    "in_delivery": {"delivered"},
+    "in_delivery": set(),
     "delivered": set(),
     "cancelled": set(),
     "refunded": set(),

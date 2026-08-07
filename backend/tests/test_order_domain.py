@@ -27,7 +27,7 @@ def test_next_statuses_pending_delivery() -> None:
 
 
 def test_next_statuses_in_delivery() -> None:
-    assert get_next_statuses("in_delivery") == ["delivered"]
+    assert get_next_statuses("in_delivery") == []
 
 
 def test_terminal_states_have_no_next() -> None:
@@ -38,7 +38,12 @@ def test_terminal_states_have_no_next() -> None:
 def test_validate_transition_allows_legal() -> None:
     validate_transition("pending_payment", "pending_delivery")
     validate_transition("pending_delivery", "in_delivery")
-    validate_transition("in_delivery", "delivered")
+
+
+def test_validate_transition_rejects_in_delivery_move() -> None:
+    with pytest.raises(HTTPException) as exc:
+        validate_transition("in_delivery", "delivered")
+    assert exc.value.status_code == 400
 
 
 def test_validate_transition_rejects_illegal() -> None:
