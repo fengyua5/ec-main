@@ -1,8 +1,11 @@
 import json
 import logging
+import re
 
 from langchain_core.messages import HumanMessage
 
+from app.db.session import SessionLocal
+from app.domain.after_sale import create_case
 from app.domain.ai.llm.chat import get_chat_llm
 from app.domain.ai.llm.prompts import (
     GREETING_RESPONSE,
@@ -138,14 +141,13 @@ async def answer_faq(state: ConversationState) -> dict:
 
 
 async def collect_refund_info(state: ConversationState) -> dict:
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+    order_no = after_sale.get("order_no", "")
     refund_info = dict(state.get("skills", {}).get("refund", {}))
+    if order_no:
+        refund_info["order_no"] = order_no
     messages = state["messages"]
     last_msg = messages[-1].content if messages else ""
-
-    if "order_no" not in refund_info:
-        refund_info["order_no"] = last_msg
-        logger.info("退单收集: 已记录订单号 '%s'", last_msg[:30])
-        return {"flow": {"response": "请输入退款原因："}, "skills": {"refund": refund_info}}
 
     if "reason" not in refund_info:
         refund_info["reason"] = last_msg
@@ -191,8 +193,9 @@ async def handoff_human(state: ConversationState) -> dict:
 
 
 async def check_order_mcp(state: ConversationState) -> dict:
-    refund_info = state.get("skills", {}).get("refund", {})
-    order_id = refund_info.get("order_no", "")
+    after_sale = state.get("skills", {}).get("after_sale", {})
+    sub_intent = after_sale.get("sub_intent", "refund")
+    order_id = after_sale.get("order_no", "")
     if not order_id:
         return {"mcp": {"order_status": "not_found", "error": "缺少订单号"}, "flow": {"response": "未提供订单号，请重新输入。"}}
 
@@ -200,16 +203,18 @@ async def check_order_mcp(state: ConversationState) -> dict:
     try:
         result = await client.check_order(order_id)
         status = result.get("status", "not_found")
+        buyer_id = result.get("buyer_id", 0)
         logger.info("MCP check_order: order=%s status=%s", order_id, status)
 
-        if status == "pending_delivery":
-            return {"mcp": {"order_status": status}}
-        elif status == "in_delivery":
-            return {"mcp": {"order_status": status}, "flow": {"response": "您的订单正在配送中，暂时无法退款。"}}
-        elif status == "delivered":
-            return {"mcp": {"order_status": status}, "flow": {"response": "订单已签收，请通过售后渠道申请退款。"}}
-        else:
-            return {"mcp": {"order_status": "not_found"}, "flow": {"response": f"未找到订单 {order_id}，请确认订单号是否正确。"}}
+        if status in ("pending_payment", "pending_delivery"):
+            return {"mcp": {"order_status": status, "order_buyer_id": buyer_id}}
+        if status in ("in_delivery", "delivered"):
+            if sub_intent == "refund":
+                msg = "您的订单已发货/签收，暂时无法退款，请通过售后渠道处理。"
+            else:
+                msg = "您的订单已发货/配送中，无法取消。"
+            return {"mcp": {"order_status": status}, "flow": {"response": msg}}
+        return {"mcp": {"order_status": "not_found"}, "flow": {"response": f"未找到订单 {order_id}，请确认订单号是否正确。"}}
     except Exception as e:
         logger.error("MCP check_order 异常: %s", e)
         return {"mcp": {"order_status": "error", "error": str(e)}, "flow": {"intent": "human"}}
@@ -226,6 +231,12 @@ async def process_refund_mcp(state: ConversationState) -> dict:
         result = await client.process_refund(order_id, reason, amount)
         if result.get("success"):
             logger.info("MCP process_refund: order=%s 退款成功", order_id)
+            buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
+            db = SessionLocal()
+            try:
+                create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="refund", amount=amount, reason=reason)
+            finally:
+                db.close()
             return {"mcp": {"refund_success": True}, "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"}}
         else:
             logger.warning("MCP process_refund: order=%s 退款失败: %s", order_id, result.get("message", ""))
@@ -279,14 +290,106 @@ async def enter_after_sale(state: ConversationState) -> dict:
     return {"skills": skills}
 
 
+_ORDER_NO_PATTERN = re.compile(r"ORD-\S+")
+
+
+async def ensure_order_no(state: ConversationState) -> dict:
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+    if after_sale.get("order_no"):
+        return {"skills": {"after_sale": after_sale}}
+
+    messages = state["messages"]
+    last_msg = messages[-1].content if messages else ""
+    match = _ORDER_NO_PATTERN.search(last_msg)
+    if match:
+        after_sale["order_no"] = match.group(0)
+        logger.info("售后槽位: 识别到订单号 '%s'", match.group(0))
+        return {"skills": {"after_sale": after_sale}}
+    logger.info("售后槽位: 未识别到订单号，询问用户")
+    return {
+        "flow": {"response": "请提供订单号（格式 ORD-xxx）："},
+        "skills": {"after_sale": after_sale},
+    }
+
+
+_YES_WORDS = {"是", "确认", "好的", "可以", "确定", "嗯", "对", "是的"}
+_NO_WORDS = {"否", "不", "取消", "别", "算了", "不要", "不是"}
+
+
+def _classify_confirm(text: str) -> str | None:
+    stripped = text.strip().strip("？！。，,.").lower()
+    if stripped in _YES_WORDS or stripped.startswith(("确认", "是的", "好的", "可以")):
+        return "yes"
+    if stripped in _NO_WORDS or stripped.startswith(("不要", "算了", "不是")):
+        return "no"
+    return None
+
+
+async def confirm_after_sale(state: ConversationState) -> dict:
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+    sub_intent = after_sale.get("sub_intent", "")
+    order_id = after_sale.get("order_no", "")
+    messages = state["messages"]
+    last_msg = messages[-1].content if messages else ""
+
+    verdict = _classify_confirm(last_msg)
+    if verdict == "yes":
+        after_sale["confirmed"] = True
+        logger.info("售后确认: 用户确认 %s 订单 %s", sub_intent, order_id)
+        return {"skills": {"after_sale": after_sale}}
+    if verdict == "no":
+        after_sale["confirmed"] = False
+        logger.info("售后确认: 用户取消操作 %s", sub_intent)
+        return {
+            "flow": {"response": f"已为您取消「{sub_intent}」操作。"},
+            "skills": {"after_sale": after_sale},
+        }
+
+    if sub_intent == "refund":
+        amount = state.get("skills", {}).get("refund", {}).get("amount", "?")
+        return {
+            "flow": {"response": f"订单 {order_id} 金额 ¥{amount}，确认退款吗？（回复「确认」或「否」）"},
+            "skills": {"after_sale": after_sale},
+        }
+    return {
+        "flow": {"response": f"确认取消订单 {order_id} 吗？（回复「确认」或「否」）"},
+        "skills": {"after_sale": after_sale},
+    }
+
+
+async def cancel_order_mcp(state: ConversationState) -> dict:
+    after_sale = state.get("skills", {}).get("after_sale", {})
+    order_id = after_sale.get("order_no", "")
+    if not order_id:
+        return {"mcp": {"cancel_success": False, "error": "缺少订单号"}, "flow": {"response": "缺少订单号，请重新输入。"}}
+
+    client = MCPClient.get_instance()
+    try:
+        result = await client.update_order_status(order_id, "cancelled")
+        if result.get("success"):
+            logger.info("MCP cancel_order: order=%s 已取消", order_id)
+            buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
+            db = SessionLocal()
+            try:
+                create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="cancel")
+            finally:
+                db.close()
+            return {"mcp": {"cancel_success": True}, "flow": {"response": f"订单 {order_id} 已成功取消。"}}
+        else:
+            logger.warning("MCP cancel_order: order=%s 取消失败: %s", order_id, result.get("message", ""))
+            return {"mcp": {"cancel_success": False}, "flow": {"response": f"订单取消失败：{result.get('message', '未知错误')}"}}
+    except Exception as e:
+        logger.error("MCP cancel_order 异常: %s", e)
+        return {"mcp": {"cancel_success": False, "error": str(e)}, "flow": {"intent": "human"}}
+
+
 async def collect_order_no(state: ConversationState) -> dict:
     after_sale = dict(state.get("skills", {}).get("after_sale", {}))
     query_order = dict(after_sale.get("query_order", {}))
-    messages = state["messages"]
-    last_msg = messages[-1].content if messages else ""
-    query_order["order_no"] = last_msg
+    order_no = after_sale.get("order_no", "")
+    query_order["order_no"] = order_no
     after_sale["query_order"] = query_order
-    logger.info("售后查询: 已记录订单号 '%s'", last_msg[:30])
+    logger.info("售后查询: 从统一槽位取订单号 '%s'", order_no)
     return {"skills": {"after_sale": after_sale}}
 
 
