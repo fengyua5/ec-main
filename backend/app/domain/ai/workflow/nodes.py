@@ -37,6 +37,12 @@ _SUB_INTENT_LABELS = {
 }
 
 
+def _merge_skills(state: ConversationState, **updates: dict) -> dict:
+    skills = dict(state.get("skills", {}))
+    skills.update(updates)
+    return skills
+
+
 async def classify_intent(state: ConversationState) -> dict:
     refund = state.get("skills", {}).get("refund", {})
     has_refund_info = bool(refund) and not all(k in refund for k in ("order_no", "reason", "amount"))
@@ -158,15 +164,15 @@ async def collect_refund_info(state: ConversationState) -> dict:
     if "reason" not in refund_info:
         refund_info["reason"] = last_msg
         logger.info("退单收集: 已记录退款原因 '%s'", last_msg[:30])
-        return {"flow": {"response": "请输入退款金额："}, "skills": {"refund": refund_info, "after_sale": after_sale}}
+        return {"flow": {"response": "请输入退款金额："}, "skills": _merge_skills(state, refund=refund_info, after_sale=after_sale)}
 
     if "amount" not in refund_info:
         refund_info["amount"] = last_msg
         logger.info("退单收集: 已记录退款金额 '%s'", last_msg[:30])
-        return {"skills": {"refund": refund_info, "after_sale": after_sale}}
+        return {"skills": _merge_skills(state, refund=refund_info, after_sale=after_sale)}
 
     logger.info("退单收集: 信息已完整，准备提交流程")
-    return {"skills": {"refund": refund_info, "after_sale": after_sale}}
+    return {"skills": _merge_skills(state, refund=refund_info, after_sale=after_sale)}
 
 
 async def process_refund(state: ConversationState) -> dict:
@@ -214,9 +220,10 @@ async def check_order_mcp(state: ConversationState) -> dict:
 
         if status in ("pending_payment", "pending_delivery"):
             after_sale["order_buyer_id"] = buyer_id
-            skills = dict(state.get("skills", {}))
-            skills["after_sale"] = after_sale
-            return {"mcp": {"order_status": status, "order_buyer_id": buyer_id}, "skills": skills}
+            return {
+                "mcp": {"order_status": status, "order_buyer_id": buyer_id},
+                "skills": _merge_skills(state, after_sale=after_sale),
+            }
         if status in ("in_delivery", "delivered"):
             if sub_intent == "refund":
                 msg = "您的订单已发货/签收，暂时无法退款，请通过售后渠道处理。"
@@ -256,13 +263,10 @@ async def process_refund_mcp(state: ConversationState) -> dict:
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
             after_sale.pop("order_buyer_id", None)
-            skills = dict(state.get("skills", {}))
-            skills["after_sale"] = after_sale
-            skills["refund"] = {}
             return {
                 "mcp": {"refund_success": True},
                 "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"},
-                "skills": skills,
+                "skills": _merge_skills(state, after_sale=after_sale, refund={}),
             }
         else:
             logger.warning("MCP process_refund: order=%s 退款失败: %s", order_id, result.get("message", ""))
@@ -273,15 +277,13 @@ async def process_refund_mcp(state: ConversationState) -> dict:
 
 
 async def enter_after_sale(state: ConversationState) -> dict:
-    skills = dict(state.get("skills", {}))
-    after_sale = dict(skills.get("after_sale", {}))
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
     sub_intent = state.get("flow", {}).get("sub_intent") or after_sale.get("sub_intent")
 
     if sub_intent:
         logger.info("售后入口: 子意图已确定 %s，跳过分类", sub_intent)
         after_sale["sub_intent"] = sub_intent
-        skills["after_sale"] = after_sale
-        return {"skills": skills}
+        return {"skills": _merge_skills(state, after_sale=after_sale)}
 
     last_user_msg = None
     for m in reversed(state["messages"]):
@@ -292,8 +294,7 @@ async def enter_after_sale(state: ConversationState) -> dict:
     if not last_user_msg:
         logger.info("售后入口: 无用户消息，默认 query_order")
         after_sale["sub_intent"] = "query_order"
-        skills["after_sale"] = after_sale
-        return {"skills": skills}
+        return {"skills": _merge_skills(state, after_sale=after_sale)}
 
     llm = get_chat_llm(temperature=0, streaming=False)
     chain = sub_intent_prompt | llm
@@ -312,31 +313,28 @@ async def enter_after_sale(state: ConversationState) -> dict:
         sub_intent = "query_order"
 
     after_sale["sub_intent"] = sub_intent
-    skills["after_sale"] = after_sale
-    return {"skills": skills}
+    return {"skills": _merge_skills(state, after_sale=after_sale)}
 
 
 _ORDER_NO_PATTERN = re.compile(r"ORD-[A-Za-z0-9-]+")
 
 
 async def ensure_order_no(state: ConversationState) -> dict:
-    skills = dict(state.get("skills", {}))
-    after_sale = dict(skills.get("after_sale", {}))
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
     if after_sale.get("order_no"):
-        return {"skills": skills}
+        return {"skills": _merge_skills(state, after_sale=after_sale)}
 
     messages = state["messages"]
     last_msg = messages[-1].content if messages else ""
     match = _ORDER_NO_PATTERN.search(last_msg)
     if match:
         after_sale["order_no"] = match.group(0)
-        skills["after_sale"] = after_sale
         logger.info("售后槽位: 识别到订单号 '%s'", match.group(0))
-        return {"skills": skills}
+        return {"skills": _merge_skills(state, after_sale=after_sale)}
     logger.info("售后槽位: 未识别到订单号，询问用户")
     return {
         "flow": {"response": "请提供订单号（格式 ORD-xxx）："},
-        "skills": skills,
+        "skills": _merge_skills(state, after_sale=after_sale),
     }
 
 
@@ -367,7 +365,7 @@ async def confirm_after_sale(state: ConversationState) -> dict:
         after_sale["confirmed"] = True
         after_sale.pop("confirmed_asked", None)
         logger.info("售后确认: 用户确认 %s 订单 %s", sub_intent, order_id)
-        return {"skills": {"after_sale": after_sale, "refund": refund}}
+        return {"skills": _merge_skills(state, after_sale=after_sale, refund=refund)}
     if verdict == "no":
         after_sale.pop("confirmed", None)
         after_sale.pop("order_no", None)
@@ -377,18 +375,18 @@ async def confirm_after_sale(state: ConversationState) -> dict:
         label = _SUB_INTENT_LABELS.get(sub_intent, sub_intent)
         return {
             "flow": {"response": f"已为您取消「{label}」操作。"},
-            "skills": {"after_sale": after_sale, "refund": {}},
+            "skills": _merge_skills(state, after_sale=after_sale, refund={}),
         }
 
     if sub_intent == "refund":
         amount = refund.get("amount", "?")
         return {
             "flow": {"response": f"订单 {order_id} 金额 ¥{amount}，确认退款吗？（回复「确认」或「否」）"},
-            "skills": {"after_sale": after_sale, "refund": refund},
+            "skills": _merge_skills(state, after_sale=after_sale, refund=refund),
         }
     return {
         "flow": {"response": f"确认取消订单 {order_id} 吗？（回复「确认」或「否」）"},
-        "skills": {"after_sale": after_sale, "refund": refund},
+        "skills": _merge_skills(state, after_sale=after_sale, refund=refund),
     }
 
 
@@ -417,12 +415,10 @@ async def cancel_order_mcp(state: ConversationState) -> dict:
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
             after_sale.pop("order_buyer_id", None)
-            skills = dict(state.get("skills", {}))
-            skills["after_sale"] = after_sale
             return {
                 "mcp": {"cancel_success": True},
                 "flow": {"response": f"订单 {order_id} 已成功取消。"},
-                "skills": skills,
+                "skills": _merge_skills(state, after_sale=after_sale),
             }
         else:
             logger.warning("MCP cancel_order: order=%s 取消失败: %s", order_id, result.get("message", ""))
@@ -439,7 +435,7 @@ async def collect_order_no(state: ConversationState) -> dict:
     query_order["order_no"] = order_no
     after_sale["query_order"] = query_order
     logger.info("售后查询: 从统一槽位取订单号 '%s'", order_no)
-    return {"skills": {"after_sale": after_sale}}
+    return {"skills": _merge_skills(state, after_sale=after_sale)}
 
 
 async def query_order_mcp(state: ConversationState) -> dict:
@@ -481,16 +477,16 @@ async def collect_update_order_info(state: ConversationState) -> dict:
         update_order["order_no"] = order_no
         after_sale["update_order"] = update_order
         logger.info("售后修改: 已记录订单号 '%s'", order_no)
-        return {"flow": {"response": "已记录订单号，请告诉我您想修改为哪个状态（例如：待发货、配送中、已送达）："}, "skills": {"after_sale": after_sale}}
+        return {"flow": {"response": "已记录订单号，请告诉我您想修改为哪个状态（例如：待发货、配送中、已送达）："}, "skills": _merge_skills(state, after_sale=after_sale)}
 
     if "status" not in update_order:
         update_order["status"] = last_msg
         after_sale["update_order"] = update_order
         logger.info("售后修改: 已记录目标状态 '%s'", last_msg[:30])
-        return {"skills": {"after_sale": after_sale}}
+        return {"skills": _merge_skills(state, after_sale=after_sale)}
 
     logger.info("售后修改: 信息已完整，准备提交修改")
-    return {"skills": {"after_sale": after_sale}}
+    return {"skills": _merge_skills(state, after_sale=after_sale)}
 
 
 async def update_order_mcp(state: ConversationState) -> dict:
