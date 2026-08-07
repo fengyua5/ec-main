@@ -73,7 +73,6 @@ async def classify_intent(state: ConversationState) -> dict:
     llm = get_chat_llm(temperature=0, streaming=False)
     chain = intent_prompt | llm
     response = await chain.ainvoke({"user_input": "\n".join(context_parts)})
-    print("意图返回", response.content);
     try:
         result = json.loads(response.content.strip())
         intent = result.get("intent", "human")
@@ -250,6 +249,7 @@ async def process_refund_mcp(state: ConversationState) -> dict:
             except Exception as case_e:
                 logger.error("售后 case 落库失败: %s", case_e)
             after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            after_sale.pop("sub_intent", None)
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
             return {
@@ -399,6 +399,8 @@ async def cancel_order_mcp(state: ConversationState) -> dict:
                     db.close()
             except Exception as case_e:
                 logger.error("售后 case 落库失败: %s", case_e)
+            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            after_sale.pop("sub_intent", None)
             after_sale.pop("order_no", None)
             after_sale.pop("confirmed", None)
             return {
