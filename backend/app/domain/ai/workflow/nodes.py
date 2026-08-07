@@ -29,6 +29,13 @@ _ORDER_STATUS_LABELS = {
     "refunded": "已退款",
 }
 
+_SUB_INTENT_LABELS = {
+    "refund": "退款",
+    "cancel_order": "取消订单",
+    "update_order": "修改订单",
+    "query_order": "查询订单",
+}
+
 
 async def classify_intent(state: ConversationState) -> dict:
     refund = state.get("skills", {}).get("refund", {})
@@ -211,8 +218,10 @@ async def check_order_mcp(state: ConversationState) -> dict:
         if status in ("in_delivery", "delivered"):
             if sub_intent == "refund":
                 msg = "您的订单已发货/签收，暂时无法退款，请通过售后渠道处理。"
+            elif status == "in_delivery":
+                msg = "您的订单配送中，无法取消。"
             else:
-                msg = "您的订单已发货/配送中，无法取消。"
+                msg = "您的订单已签收，无法取消。"
             return {"mcp": {"order_status": status}, "flow": {"response": msg}}
         return {"mcp": {"order_status": "not_found"}, "flow": {"response": f"未找到订单 {order_id}，请确认订单号是否正确。"}}
     except Exception as e:
@@ -232,12 +241,22 @@ async def process_refund_mcp(state: ConversationState) -> dict:
         if result.get("success"):
             logger.info("MCP process_refund: order=%s 退款成功", order_id)
             buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
-            db = SessionLocal()
             try:
-                create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="refund", amount=amount, reason=reason)
-            finally:
-                db.close()
-            return {"mcp": {"refund_success": True}, "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"}}
+                db = SessionLocal()
+                try:
+                    create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="refund", amount=amount, reason=reason)
+                finally:
+                    db.close()
+            except Exception as case_e:
+                logger.error("售后 case 落库失败: %s", case_e)
+            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            after_sale.pop("order_no", None)
+            after_sale.pop("confirmed", None)
+            return {
+                "mcp": {"refund_success": True},
+                "flow": {"response": f"退款成功！订单 {order_id} 已退款 {amount} 元。（原因：{reason}）"},
+                "skills": {"after_sale": after_sale},
+            }
         else:
             logger.warning("MCP process_refund: order=%s 退款失败: %s", order_id, result.get("message", ""))
             return {"mcp": {"refund_success": False}, "flow": {"response": f"退款失败：{result.get('message', '未知错误')}"}}
@@ -290,7 +309,7 @@ async def enter_after_sale(state: ConversationState) -> dict:
     return {"skills": skills}
 
 
-_ORDER_NO_PATTERN = re.compile(r"ORD-\S+")
+_ORDER_NO_PATTERN = re.compile(r"ORD-[A-Za-z0-9-]+")
 
 
 async def ensure_order_no(state: ConversationState) -> dict:
@@ -313,15 +332,16 @@ async def ensure_order_no(state: ConversationState) -> dict:
 
 
 _YES_WORDS = {"是", "确认", "好的", "可以", "确定", "嗯", "对", "是的"}
-_NO_WORDS = {"否", "不", "取消", "别", "算了", "不要", "不是"}
+_NO_WORDS = {"否", "不", "算了", "不要", "不要了", "不是", "不用"}
 
 
 def _classify_confirm(text: str) -> str | None:
     stripped = text.strip().strip("？！。，,.").lower()
-    if stripped in _YES_WORDS or stripped.startswith(("确认", "是的", "好的", "可以")):
-        return "yes"
-    if stripped in _NO_WORDS or stripped.startswith(("不要", "算了", "不是")):
-        return "no"
+    if len(stripped) <= 4:
+        if stripped in _YES_WORDS:
+            return "yes"
+        if stripped in _NO_WORDS:
+            return "no"
     return None
 
 
@@ -335,13 +355,15 @@ async def confirm_after_sale(state: ConversationState) -> dict:
     verdict = _classify_confirm(last_msg)
     if verdict == "yes":
         after_sale["confirmed"] = True
+        after_sale.pop("confirmed_asked", None)
         logger.info("售后确认: 用户确认 %s 订单 %s", sub_intent, order_id)
         return {"skills": {"after_sale": after_sale}}
     if verdict == "no":
         after_sale["confirmed"] = False
         logger.info("售后确认: 用户取消操作 %s", sub_intent)
+        label = _SUB_INTENT_LABELS.get(sub_intent, sub_intent)
         return {
-            "flow": {"response": f"已为您取消「{sub_intent}」操作。"},
+            "flow": {"response": f"已为您取消「{label}」操作。"},
             "skills": {"after_sale": after_sale},
         }
 
@@ -369,12 +391,21 @@ async def cancel_order_mcp(state: ConversationState) -> dict:
         if result.get("success"):
             logger.info("MCP cancel_order: order=%s 已取消", order_id)
             buyer_id = state.get("mcp", {}).get("order_buyer_id", 0)
-            db = SessionLocal()
             try:
-                create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="cancel")
-            finally:
-                db.close()
-            return {"mcp": {"cancel_success": True}, "flow": {"response": f"订单 {order_id} 已成功取消。"}}
+                db = SessionLocal()
+                try:
+                    create_case(db, order_no=order_id, buyer_id=buyer_id, case_type="cancel")
+                finally:
+                    db.close()
+            except Exception as case_e:
+                logger.error("售后 case 落库失败: %s", case_e)
+            after_sale.pop("order_no", None)
+            after_sale.pop("confirmed", None)
+            return {
+                "mcp": {"cancel_success": True},
+                "flow": {"response": f"订单 {order_id} 已成功取消。"},
+                "skills": {"after_sale": after_sale},
+            }
         else:
             logger.warning("MCP cancel_order: order=%s 取消失败: %s", order_id, result.get("message", ""))
             return {"mcp": {"cancel_success": False}, "flow": {"response": f"订单取消失败：{result.get('message', '未知错误')}"}}
