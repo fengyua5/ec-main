@@ -63,7 +63,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             order = get_order(db, order_id)
             return [types.TextContent(
                 type="text",
-                text=f'{{"status": "{order.status}", "amount": "{order.amount}", "message": "订单查询成功"}}',
+                text=f'{{"status": "{order.status}", "amount": "{order.amount}", "order_no": "{order.order_no}", "buyer_id": {order.buyer_id}, "created_at": "{order.created_at.isoformat()}", "message": "订单查询成功"}}',
             )]
         except Exception:
             return [types.TextContent(type="text", text='{"status": "not_found", "message": "订单不存在"}')]

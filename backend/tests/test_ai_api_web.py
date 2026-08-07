@@ -34,6 +34,14 @@ async def _fake_done(
     yield {"type": "done"}
 
 
+async def _fake_after_sale_events(
+    _db, _conversation_id: int, _user_message: str
+) -> AsyncGenerator[dict, None]:
+    yield {"type": "intent", "value": "after_sale"}
+    yield {"type": "token", "content": "请问需要查询订单、修改订单还是退款？"}
+    yield {"type": "done"}
+
+
 def test_chat_streaming_response() -> None:
     with patch(
         "app.api.web.ai.ChatEngine.process_message",
@@ -58,6 +66,20 @@ def test_chat_new_conversation_on_missing_id() -> None:
     ):
         response = client.post("/api/v1/web/ai/chat", json={"content": "test"})
         assert response.status_code == 200
+
+
+def test_chat_streams_after_sale_intent() -> None:
+    with patch(
+        "app.api.web.ai.ChatEngine.process_message",
+        side_effect=_fake_after_sale_events,
+    ):
+        response = client.post("/api/v1/web/ai/chat", json={"content": "我要处理订单"})
+        assert response.status_code == 200
+        lines = response.text.strip().split("\n\n")
+        assert len(lines) == 3
+        assert '"after_sale"' in lines[0]
+        assert "查询订单" in lines[1]
+        assert '"done"' in lines[2]
 
 
 def test_list_conversations_empty() -> None:

@@ -56,6 +56,7 @@ class ChatEngine:
 
         lc_messages: list = []
         refund_info: dict = {}
+        after_sale: dict = {}
         for msg in db_messages:
             if msg.sender == "user":
                 lc_messages.append(HumanMessage(content=msg.content))
@@ -66,6 +67,11 @@ class ChatEngine:
                     refund_info = json.loads(msg.content)
                 except (json.JSONDecodeError, TypeError):
                     refund_info = {}
+            elif msg.sender == "system" and msg.msg_type == "after_sale_info":
+                try:
+                    after_sale = json.loads(msg.content)
+                except (json.JSONDecodeError, TypeError):
+                    after_sale = {}
 
         lc_messages.append(HumanMessage(content=user_message))
 
@@ -79,6 +85,7 @@ class ChatEngine:
             },
             "skills": {
                 "refund": refund_info,
+                "after_sale": after_sale,
                 "faq": {"context": []},
             },
             "mcp": {},
@@ -100,6 +107,16 @@ class ChatEngine:
                 "system",
                 json.dumps(updated_refund, ensure_ascii=False),
                 msg_type="refund_info",
+            )
+
+        updated_after_sale = result.get("skills", {}).get("after_sale", {})
+        if updated_after_sale and updated_after_sale != after_sale:
+            self.msg_repo.create(
+                db,
+                conversation_id,
+                "system",
+                json.dumps(updated_after_sale, ensure_ascii=False),
+                msg_type="after_sale_info",
             )
 
         if trace_id is not None:

@@ -3,12 +3,21 @@ from langchain_core.prompts import ChatPromptTemplate
 INTENT_SYSTEM_PROMPT = """你是一个客服意图分类器。你的任务是对用户的消息进行分类，只返回 JSON 格式的结果。
 分类类别：
 - "faq": 用户询问常见问题（退货政策、运费、发货时间等）
-- "refund": 用户要求退款或退货
+- "after_sale": 用户有售后诉求，包括查询订单、修改订单、退款或退货
 - "human": 用户要求转接人工客服
 - "greeting": 用户打招呼或问候
 
 返回格式（只返回 JSON，不要其他内容）：
-{{"intent": "faq|refund|human|greeting", "confidence": 0.0-1.0}}"""
+{{"intent": "faq|after_sale|human|greeting", "confidence": 0.0-1.0}}"""
+
+SUB_INTENT_SYSTEM_PROMPT = """你是一个售后子意图分类器。用户的诉求已被判定为售后，你的任务是对用户的消息进一步细分，只返回 JSON 格式的结果。
+分类类别：
+- "query_order": 用户要查询订单状态或订单详情
+- "update_order": 用户要修改订单（例如修改订单状态）
+- "refund": 用户要申请退款或退货
+
+返回格式（只返回 JSON，不要其他内容）：
+{{"sub_intent": "query_order|update_order|refund", "confidence": 0.0-1.0}}"""
 
 FAQ_SYSTEM_PROMPT = """你是一个基于知识库的智能客服助手。你必须严格遵守以下规则回答用户问题：
 
@@ -27,6 +36,11 @@ GREETING_RESPONSE = "你好！我是 AI 智能客服，很高兴为您服务。�
 
 intent_prompt = ChatPromptTemplate.from_messages([
     ("system", INTENT_SYSTEM_PROMPT),
+    ("human", "{user_input}"),
+])
+
+sub_intent_prompt = ChatPromptTemplate.from_messages([
+    ("system", SUB_INTENT_SYSTEM_PROMPT),
     ("human", "{user_input}"),
 ])
 

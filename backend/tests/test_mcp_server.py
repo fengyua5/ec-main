@@ -56,3 +56,28 @@ async def test_update_order_status_not_found() -> None:
     payload = json.loads(result[0].text)
     assert payload["success"] is False
     assert "不存在" in payload["message"]
+
+
+@pytest.mark.anyio
+async def test_check_order_returns_full_fields() -> None:
+    db = SessionLocal()
+    db.add(Order(order_no="ORD-CHK-001", buyer_id=7, amount="299.50", status="in_delivery"))
+    db.commit()
+    db.close()
+
+    result = await call_tool("check_order", {"order_id": "ORD-CHK-001"})
+    payload = json.loads(result[0].text)
+    assert payload["status"] == "in_delivery"
+    assert payload["order_no"] == "ORD-CHK-001"
+    assert payload["buyer_id"] == 7
+    assert payload["amount"] == "299.50"
+    assert "created_at" in payload
+    assert payload["message"] == "订单查询成功"
+
+
+@pytest.mark.anyio
+async def test_check_order_not_found() -> None:
+    result = await call_tool("check_order", {"order_id": "ORD-NOPE"})
+    payload = json.loads(result[0].text)
+    assert payload["status"] == "not_found"
+    assert "不存在" in payload["message"]

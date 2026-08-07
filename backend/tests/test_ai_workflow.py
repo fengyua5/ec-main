@@ -9,12 +9,17 @@ from app.domain.ai.workflow.nodes import (
     answer_faq,
     check_order_mcp,
     classify_intent,
+    collect_order_no,
     collect_refund_info,
+    collect_update_order_info,
+    enter_after_sale,
     handle_greeting,
     handoff_human,
     process_refund,
     process_refund_mcp,
+    query_order_mcp,
     retrieve_faq,
+    update_order_mcp,
 )
 from app.domain.ai.workflow.engine import ChatEngine
 
@@ -63,6 +68,11 @@ class TestGraph:
             "collect_refund_info",
             "process_refund",
             "handoff_human",
+            "enter_after_sale",
+            "collect_order_no",
+            "query_order_mcp",
+            "collect_update_order_info",
+            "update_order_mcp",
         }
         assert expected.issubset(graph.nodes)
 
@@ -114,6 +124,8 @@ class TestGraph:
         with patch(
             "app.domain.ai.workflow.nodes.intent_prompt"
         ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_sub_prompt, patch(
             "app.domain.ai.workflow.nodes.MCPClient"
         ) as mock_mcp_cls:
             mock_instance = MagicMock()
@@ -127,13 +139,19 @@ class TestGraph:
 
             mock_chain = AsyncMock()
             mock_chain.ainvoke.return_value = MagicMock(
-                content='{"intent": "refund", "confidence": 0.9}'
+                content='{"intent": "after_sale", "confidence": 0.9}'
             )
             mock_prompt.__or__.return_value = mock_chain
 
+            mock_sub_chain = AsyncMock()
+            mock_sub_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "refund", "confidence": 0.9}'
+            )
+            mock_sub_prompt.__or__.return_value = mock_sub_chain
+
             from langchain_core.messages import HumanMessage
             state = make_state(
-                flow={"intent": "refund"},
+                flow={"intent": "after_sale"},
                 skills={"refund": {"order_no": "123", "reason": "defective", "amount": "50"}},
                 messages=[HumanMessage(content="50")],
             )
@@ -187,6 +205,97 @@ class TestGraph:
             assert result2["skills"]["refund"]["amount"] == "99.9"
             assert "退款成功" in result2.get("flow", {}).get("response", "")
 
+    @pytest.mark.asyncio
+    async def test_query_order_full_flow(self) -> None:
+        """after_sale(query_order)：查订单全流程"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_sub_prompt, patch(
+            "app.domain.ai.workflow.nodes.MCPClient"
+        ) as mock_mcp_cls:
+            mock_instance = MagicMock()
+            mock_instance.check_order = AsyncMock(
+                return_value={
+                    "status": "delivered",
+                    "amount": "299.00",
+                    "created_at": "2026-01-01 10:00:00",
+                }
+            )
+            mock_mcp_cls.get_instance.return_value = mock_instance
+
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"intent": "after_sale", "confidence": 0.9}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            mock_sub_chain = AsyncMock()
+            mock_sub_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "query_order", "confidence": 0.9}'
+            )
+            mock_sub_prompt.__or__.return_value = mock_sub_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(
+                messages=[HumanMessage(content="查一下订单 ORD-999")],
+            )
+            graph = build_chat_graph()
+            result = await graph.ainvoke(state)
+            assert "ORD-999" in result.get("flow", {}).get("response", "")
+            assert "已送达" in result.get("flow", {}).get("response", "")
+
+    @pytest.mark.asyncio
+    async def test_update_order_full_flow(self) -> None:
+        """after_sale(update_order)：收集订单号 → 收集目标状态 → 调 update_order_status"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt, patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_sub_prompt, patch(
+            "app.domain.ai.workflow.nodes.MCPClient"
+        ) as mock_mcp_cls:
+            mock_instance = MagicMock()
+            mock_instance.update_order_status = AsyncMock(
+                return_value={"success": True, "message": "ok"}
+            )
+            mock_mcp_cls.get_instance.return_value = mock_instance
+
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"intent": "after_sale", "confidence": 0.9}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            mock_sub_chain = AsyncMock()
+            mock_sub_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "update_order", "confidence": 0.9}'
+            )
+            mock_sub_prompt.__or__.return_value = mock_sub_chain
+
+            from langchain_core.messages import HumanMessage
+
+            # Turn 1: 只给订单号，收集到后停在 END（未收集状态）
+            state = make_state(messages=[HumanMessage(content="把订单 ORD-456 状态改一下")])
+            graph = build_chat_graph()
+            result = await graph.ainvoke(state)
+            assert result["skills"]["after_sale"]["update_order"]["order_no"] == "把订单 ORD-456 状态改一下"
+            assert "状态" in result.get("flow", {}).get("response", "")
+
+            # Turn 2: 给出目标状态，子意图已持久化，进入 update_order_mcp
+            state2 = make_state(
+                skills={"after_sale": result["skills"]["after_sale"]},
+                messages=[
+                    HumanMessage(content="把订单 ORD-456 状态改一下"),
+                    HumanMessage(content="已送达"),
+                ],
+            )
+            result2 = await graph.ainvoke(state2)
+            assert result2["mcp"]["update_success"] is True
+            assert "ORD-456" in result2.get("flow", {}).get("response", "")
+
 
 class TestNodes:
     @pytest.mark.asyncio
@@ -214,7 +323,7 @@ class TestNodes:
 
     @pytest.mark.asyncio
     async def test_classify_intent_skips_llm_when_refund_in_progress(self) -> None:
-        """退单进行中时，classify_intent 应直接返回 refund，不调 LLM"""
+        """退单进行中时，classify_intent 应直接返回 after_sale + sub_intent=refund，不调 LLM"""
         from langchain_core.messages import HumanMessage
 
         state = make_state(
@@ -222,7 +331,8 @@ class TestNodes:
             messages=[HumanMessage(content="商品有问题")],
         )
         result = await classify_intent(state)
-        assert result["flow"]["intent"] == "refund"
+        assert result["flow"]["intent"] == "after_sale"
+        assert result["flow"]["sub_intent"] == "refund"
         assert result["flow"]["confidence"] == 1.0
 
     @pytest.mark.asyncio
@@ -385,6 +495,220 @@ class TestNodes:
             context_text = called_args[0][0]["context"]
             assert context_text == "退货政策 30 天"
 
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_uses_flow_sub_intent(self) -> None:
+        """短路时 flow.sub_intent 已确定，应跳过子意图 LLM 分类"""
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            flow={"intent": "after_sale", "sub_intent": "refund"},
+            skills={"after_sale": {}},
+            messages=[HumanMessage(content="商品有问题")],
+        )
+        result = await enter_after_sale(state)
+        assert result["skills"]["after_sale"]["sub_intent"] == "refund"
+
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_uses_persisted_sub_intent(self) -> None:
+        """多轮中 skills.after_sale.sub_intent 已存在，应跳过 LLM 分类"""
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"after_sale": {"sub_intent": "update_order"}},
+            messages=[HumanMessage(content="改订单")],
+        )
+        result = await enter_after_sale(state)
+        assert result["skills"]["after_sale"]["sub_intent"] == "update_order"
+
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_classifies_via_llm(self) -> None:
+        """无既有子意图时，应通过 sub_intent_prompt 分类"""
+        with patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "query_order", "confidence": 0.9}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(messages=[HumanMessage(content="帮我查一下订单")])
+            result = await enter_after_sale(state)
+            assert result["skills"]["after_sale"]["sub_intent"] == "query_order"
+
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_low_confidence_defaults_query(self) -> None:
+        """子意图置信度过低时默认 query_order"""
+        with patch(
+            "app.domain.ai.workflow.nodes.sub_intent_prompt"
+        ) as mock_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"sub_intent": "refund", "confidence": 0.2}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+
+            state = make_state(messages=[HumanMessage(content="随便问问")])
+            result = await enter_after_sale(state)
+            assert result["skills"]["after_sale"]["sub_intent"] == "query_order"
+
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_no_message_defaults_query(self) -> None:
+        """无用户消息时默认 query_order"""
+        state = make_state(messages=[])
+        result = await enter_after_sale(state)
+        assert result["skills"]["after_sale"]["sub_intent"] == "query_order"
+
+    @pytest.mark.asyncio
+    async def test_enter_after_sale_keeps_other_skills(self) -> None:
+        """enter_after_sale 不应覆盖 skills 中的 refund 等信息"""
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"refund": {"order_no": "12345"}, "after_sale": {}},
+            messages=[HumanMessage(content="商品有问题")],
+        )
+        result = await enter_after_sale(state)
+        assert result["skills"]["refund"]["order_no"] == "12345"
+
+    @pytest.mark.asyncio
+    async def test_collect_order_no_records_last_msg(self) -> None:
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"after_sale": {"sub_intent": "query_order"}},
+            messages=[HumanMessage(content="ORD-123")],
+        )
+        result = await collect_order_no(state)
+        assert result["skills"]["after_sale"]["query_order"]["order_no"] == "ORD-123"
+
+    @pytest.mark.asyncio
+    async def test_query_order_mcp_success(self) -> None:
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(
+            return_value={
+                "status": "delivered",
+                "amount": "299.00",
+                "created_at": "2026-01-01 10:00:00",
+            }
+        )
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "query_order", "query_order": {"order_no": "ORD-123"}}},
+            )
+            result = await query_order_mcp(state)
+            assert result["mcp"]["order_status"] == "delivered"
+            assert "ORD-123" in result["flow"]["response"]
+            assert "已送达" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_query_order_mcp_not_found(self) -> None:
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "not_found"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "query_order", "query_order": {"order_no": "ORD-NOPE"}}},
+            )
+            result = await query_order_mcp(state)
+            assert result["mcp"]["order_status"] == "not_found"
+            assert "未找到订单" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_query_order_mcp_missing_order_no(self) -> None:
+        state = make_state(skills={"after_sale": {"sub_intent": "query_order"}})
+        result = await query_order_mcp(state)
+        assert result["mcp"]["order_status"] == "not_found"
+        assert "未提供订单号" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_query_order_mcp_exception_degrades_to_human(self) -> None:
+        mock_client = MagicMock()
+        mock_client.check_order.side_effect = RuntimeError("MCP 连接失败")
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "query_order", "query_order": {"order_no": "ORD-ERR"}}},
+            )
+            result = await query_order_mcp(state)
+            assert result["mcp"]["order_status"] == "error"
+            assert result["flow"]["intent"] == "human"
+
+    @pytest.mark.asyncio
+    async def test_collect_update_order_first_turn(self) -> None:
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"after_sale": {"sub_intent": "update_order"}},
+            messages=[HumanMessage(content="ORD-456")],
+        )
+        result = await collect_update_order_info(state)
+        assert result["skills"]["after_sale"]["update_order"]["order_no"] == "ORD-456"
+        assert "状态" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_collect_update_order_second_turn(self) -> None:
+        from langchain_core.messages import HumanMessage
+
+        state = make_state(
+            skills={"after_sale": {"sub_intent": "update_order", "update_order": {"order_no": "ORD-456"}}},
+            messages=[HumanMessage(content="已送达")],
+        )
+        result = await collect_update_order_info(state)
+        assert result["skills"]["after_sale"]["update_order"]["status"] == "已送达"
+        assert "flow" not in result
+
+    @pytest.mark.asyncio
+    async def test_update_order_mcp_success(self) -> None:
+        mock_client = MagicMock()
+        mock_client.update_order_status = AsyncMock(return_value={"success": True, "message": "ok"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "update_order", "update_order": {"order_no": "ORD-456", "status": "已送达"}}},
+            )
+            result = await update_order_mcp(state)
+            assert result["mcp"]["update_success"] is True
+            assert "ORD-456" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_update_order_mcp_failure(self) -> None:
+        mock_client = MagicMock()
+        mock_client.update_order_status = AsyncMock(return_value={"success": False, "message": "状态不合法"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "update_order", "update_order": {"order_no": "ORD-456", "status": "已送达"}}},
+            )
+            result = await update_order_mcp(state)
+            assert result["mcp"]["update_success"] is False
+            assert "修改失败" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_update_order_mcp_missing_info(self) -> None:
+        state = make_state(skills={"after_sale": {"sub_intent": "update_order"}})
+        result = await update_order_mcp(state)
+        assert result["mcp"]["update_success"] is False
+        assert "缺少订单号" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_update_order_mcp_exception_degrades_to_human(self) -> None:
+        mock_client = MagicMock()
+        mock_client.update_order_status.side_effect = RuntimeError("MCP 内部错误")
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "update_order", "update_order": {"order_no": "ORD-456", "status": "已送达"}}},
+            )
+            result = await update_order_mcp(state)
+            assert result["mcp"]["update_success"] is False
+            assert result["flow"]["intent"] == "human"
+
 
 class TestEngine:
     @pytest.mark.asyncio
@@ -472,9 +796,9 @@ class TestGraphRoutingLogic:
         from app.domain.ai.workflow.graph import _route_after_intent
         assert _route_after_intent(make_state(flow={"intent": "faq"})) == "faq"
 
-    def test_route_after_intent_refund(self) -> None:
+    def test_route_after_intent_after_sale(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
-        assert _route_after_intent(make_state(flow={"intent": "refund"})) == "refund"
+        assert _route_after_intent(make_state(flow={"intent": "after_sale"})) == "after_sale"
 
     def test_route_after_intent_human(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
@@ -483,6 +807,36 @@ class TestGraphRoutingLogic:
     def test_route_after_intent_none_fallback(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
         assert _route_after_intent(make_state(flow={"intent": None})) == "human"
+
+    def test_route_after_after_sale_query(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_after_sale
+        state = make_state(skills={"after_sale": {"sub_intent": "query_order"}})
+        assert _route_after_after_sale(state) == "query_order"
+
+    def test_route_after_after_sale_update(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_after_sale
+        state = make_state(skills={"after_sale": {"sub_intent": "update_order"}})
+        assert _route_after_after_sale(state) == "update_order"
+
+    def test_route_after_after_sale_refund(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_after_sale
+        state = make_state(skills={"after_sale": {"sub_intent": "refund"}})
+        assert _route_after_after_sale(state) == "refund"
+
+    def test_route_after_after_sale_default_query(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_after_sale
+        assert _route_after_after_sale(make_state()) == "query_order"
+
+    def test_route_after_update_collect_complete(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_update_collect
+        state = make_state(skills={"after_sale": {"update_order": {"order_no": "1", "status": "已送达"}}})
+        assert _route_after_update_collect(state) == "update_order_mcp"
+
+    def test_route_after_update_collect_incomplete(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_update_collect
+        from langgraph.graph import END
+        state = make_state(skills={"after_sale": {"update_order": {"order_no": "1"}}})
+        assert _route_after_update_collect(state) == END
 
     def test_route_after_refund_complete(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_refund

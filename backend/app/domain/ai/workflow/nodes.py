@@ -7,6 +7,7 @@ from app.domain.ai.llm.chat import get_chat_llm
 from app.domain.ai.llm.prompts import (
     GREETING_RESPONSE,
     intent_prompt,
+    sub_intent_prompt,
     faq_prompt,
 )
 from app.domain.ai.rag import FaqIndexService, FaqRetriever
@@ -16,13 +17,27 @@ from app.domain.ai.workflow.state import ConversationState
 
 logger = logging.getLogger(__name__)
 
+_ORDER_STATUS_LABELS = {
+    "pending_payment": "待付款",
+    "pending_delivery": "待发货",
+    "in_delivery": "配送中",
+    "delivered": "已送达",
+    "cancelled": "已取消",
+    "refunded": "已退款",
+}
+
 
 async def classify_intent(state: ConversationState) -> dict:
     refund = state.get("skills", {}).get("refund", {})
     has_refund_info = bool(refund) and not all(k in refund for k in ("order_no", "reason", "amount"))
     if has_refund_info:
         logger.info("意图识别: 退单流程进行中，跳过 LLM 分类，返回 refund")
-        return {"flow": {"intent": "refund", "confidence": 1.0}}
+        return {"flow": {"intent": "after_sale", "sub_intent": "refund", "confidence": 1.0}}
+
+    after_sale = state.get("skills", {}).get("after_sale", {})
+    if after_sale.get("sub_intent"):
+        logger.info("意图识别: 售后流程进行中，跳过 LLM 分类，返回 after_sale")
+        return {"flow": {"intent": "after_sale", "sub_intent": after_sale.get("sub_intent"), "confidence": 1.0}}
 
     last_user_msg = None
     last_ai_msg = None
@@ -218,3 +233,129 @@ async def process_refund_mcp(state: ConversationState) -> dict:
     except Exception as e:
         logger.error("MCP process_refund 异常: %s", e)
         return {"mcp": {"refund_success": False, "error": str(e)}, "flow": {"intent": "human"}}
+
+
+async def enter_after_sale(state: ConversationState) -> dict:
+    skills = dict(state.get("skills", {}))
+    after_sale = dict(skills.get("after_sale", {}))
+    sub_intent = state.get("flow", {}).get("sub_intent") or after_sale.get("sub_intent")
+
+    if sub_intent:
+        logger.info("售后入口: 子意图已确定 %s，跳过分类", sub_intent)
+        after_sale["sub_intent"] = sub_intent
+        skills["after_sale"] = after_sale
+        return {"skills": skills}
+
+    last_user_msg = None
+    for m in reversed(state["messages"]):
+        if isinstance(m, HumanMessage):
+            last_user_msg = m.content
+            break
+
+    if not last_user_msg:
+        logger.info("售后入口: 无用户消息，默认 query_order")
+        after_sale["sub_intent"] = "query_order"
+        skills["after_sale"] = after_sale
+        return {"skills": skills}
+
+    llm = get_chat_llm(temperature=0, streaming=False)
+    chain = sub_intent_prompt | llm
+    response = await chain.ainvoke({"user_input": last_user_msg})
+    try:
+        result = json.loads(response.content.strip())
+        sub_intent = result.get("sub_intent", "query_order")
+        confidence = float(result.get("confidence", 0.0))
+        if confidence < 0.5:
+            logger.info("售后子意图: 置信度 %.2f < 0.5，默认 query_order", confidence)
+            sub_intent = "query_order"
+        else:
+            logger.info("售后子意图: %s (置信度 %.2f)", sub_intent, confidence)
+    except (json.JSONDecodeError, ValueError, AttributeError) as e:
+        logger.warning("售后子意图: LLM 返回解析失败: %s", e)
+        sub_intent = "query_order"
+
+    after_sale["sub_intent"] = sub_intent
+    skills["after_sale"] = after_sale
+    return {"skills": skills}
+
+
+async def collect_order_no(state: ConversationState) -> dict:
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+    query_order = dict(after_sale.get("query_order", {}))
+    messages = state["messages"]
+    last_msg = messages[-1].content if messages else ""
+    query_order["order_no"] = last_msg
+    after_sale["query_order"] = query_order
+    logger.info("售后查询: 已记录订单号 '%s'", last_msg[:30])
+    return {"skills": {"after_sale": after_sale}}
+
+
+async def query_order_mcp(state: ConversationState) -> dict:
+    order_id = state.get("skills", {}).get("after_sale", {}).get("query_order", {}).get("order_no", "")
+    if not order_id:
+        return {"mcp": {"order_status": "not_found", "error": "缺少订单号"}, "flow": {"response": "未提供订单号，请重新输入。"}}
+
+    client = MCPClient.get_instance()
+    try:
+        result = await client.check_order(order_id)
+        status = result.get("status", "not_found")
+        logger.info("MCP query_order: order=%s status=%s", order_id, status)
+
+        if status == "not_found":
+            return {"mcp": {"order_status": "not_found"}, "flow": {"response": f"未找到订单 {order_id}，请确认订单号是否正确。"}}
+        if status == "error":
+            return {"mcp": {"order_status": "error"}, "flow": {"response": "订单查询失败，请稍后重试或转人工客服。"}}
+
+        status_label = _ORDER_STATUS_LABELS.get(status, status)
+        return {
+            "mcp": {"order_status": status},
+            "flow": {
+                "response": f"订单 {order_id} 查询成功：金额 ¥{result.get('amount', '?')}，状态 {status_label}，创建时间 {result.get('created_at', '?')}。"
+            },
+        }
+    except Exception as e:
+        logger.error("MCP query_order 异常: %s", e)
+        return {"mcp": {"order_status": "error", "error": str(e)}, "flow": {"intent": "human"}}
+
+
+async def collect_update_order_info(state: ConversationState) -> dict:
+    after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+    update_order = dict(after_sale.get("update_order", {}))
+    messages = state["messages"]
+    last_msg = messages[-1].content if messages else ""
+
+    if "order_no" not in update_order:
+        update_order["order_no"] = last_msg
+        after_sale["update_order"] = update_order
+        logger.info("售后修改: 已记录订单号 '%s'", last_msg[:30])
+        return {"flow": {"response": "已记录订单号，请告诉我您想修改为哪个状态（例如：待发货、配送中、已送达）："}, "skills": {"after_sale": after_sale}}
+
+    if "status" not in update_order:
+        update_order["status"] = last_msg
+        after_sale["update_order"] = update_order
+        logger.info("售后修改: 已记录目标状态 '%s'", last_msg[:30])
+        return {"skills": {"after_sale": after_sale}}
+
+    logger.info("售后修改: 信息已完整，准备提交修改")
+    return {"skills": {"after_sale": after_sale}}
+
+
+async def update_order_mcp(state: ConversationState) -> dict:
+    update_order = state.get("skills", {}).get("after_sale", {}).get("update_order", {})
+    order_id = update_order.get("order_no", "")
+    status = update_order.get("status", "")
+    if not order_id or not status:
+        return {"mcp": {"update_success": False, "error": "缺少订单信息"}, "flow": {"response": "缺少订单号或目标状态，请重新输入。"}}
+
+    client = MCPClient.get_instance()
+    try:
+        result = await client.update_order_status(order_id, status)
+        if result.get("success"):
+            logger.info("MCP update_order: order=%s 修改为 %s", order_id, status)
+            return {"mcp": {"update_success": True}, "flow": {"response": f"订单 {order_id} 已成功修改为「{status}」状态。"}}
+        else:
+            logger.warning("MCP update_order: order=%s 修改失败: %s", order_id, result.get("message", ""))
+            return {"mcp": {"update_success": False}, "flow": {"response": f"订单修改失败：{result.get('message', '未知错误')}"}}
+    except Exception as e:
+        logger.error("MCP update_order 异常: %s", e)
+        return {"mcp": {"update_success": False, "error": str(e)}, "flow": {"intent": "human"}}
