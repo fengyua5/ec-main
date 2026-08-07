@@ -3,12 +3,15 @@ from langgraph.graph import StateGraph, END
 from app.domain.ai.workflow.state import ConversationState
 from app.domain.ai.workflow.nodes import (
     answer_faq,
+    cancel_order_mcp,
     check_order_mcp,
     classify_intent,
     collect_order_no,
     collect_refund_info,
     collect_update_order_info,
+    confirm_after_sale,
     enter_after_sale,
+    ensure_order_no,
     handle_greeting,
     handoff_human,
     process_refund,
@@ -32,7 +35,24 @@ def _route_after_faq(state: ConversationState) -> str:
 def _route_after_after_sale(state: ConversationState) -> str:
     after_sale = state.get("skills", {}).get("after_sale", {})
     sub_intent = after_sale.get("sub_intent", "query_order")
-    return sub_intent if sub_intent in ("query_order", "update_order", "refund") else "query_order"
+    if sub_intent in ("query_order", "cancel_order", "update_order", "refund"):
+        return sub_intent
+    return "query_order"
+
+
+def _route_after_ensure(state: ConversationState) -> str:
+    after_sale = state.get("skills", {}).get("after_sale", {})
+    if not after_sale.get("order_no"):
+        return END
+    return after_sale.get("sub_intent", "query_order")
+
+
+def _route_after_confirm(state: ConversationState) -> str:
+    after_sale = state.get("skills", {}).get("after_sale", {})
+    if after_sale.get("confirmed"):
+        sub_intent = after_sale.get("sub_intent", "")
+        return "cancel_order_mcp" if sub_intent == "cancel_order" else "process_refund_mcp"
+    return END
 
 
 def _route_after_refund(state: ConversationState) -> str:
@@ -45,8 +65,8 @@ def _route_after_refund(state: ConversationState) -> str:
 def _route_after_check(state: ConversationState) -> str:
     mcp = state.get("mcp", {})
     status = mcp.get("order_status", "")
-    if status == "pending_delivery":
-        return "process_refund_mcp"
+    if status in ("pending_payment", "pending_delivery"):
+        return "confirm_after_sale"
     return END
 
 
@@ -72,7 +92,10 @@ def build_chat_graph() -> StateGraph:
     workflow.add_node("collect_refund_info", collect_refund_info)
     workflow.add_node("process_refund", process_refund)
     workflow.add_node("check_order_mcp", check_order_mcp)
+    workflow.add_node("confirm_after_sale", confirm_after_sale)
     workflow.add_node("process_refund_mcp", process_refund_mcp)
+    workflow.add_node("ensure_order_no", ensure_order_no)
+    workflow.add_node("cancel_order_mcp", cancel_order_mcp)
     workflow.add_node("handoff_human", handoff_human)
 
     workflow.set_entry_point("classify_intent")
@@ -101,9 +124,22 @@ def build_chat_graph() -> StateGraph:
         "enter_after_sale",
         _route_after_after_sale,
         {
+            "query_order": "ensure_order_no",
+            "cancel_order": "ensure_order_no",
+            "update_order": "ensure_order_no",
+            "refund": "ensure_order_no",
+        },
+    )
+
+    workflow.add_conditional_edges(
+        "ensure_order_no",
+        _route_after_ensure,
+        {
             "query_order": "collect_order_no",
+            "cancel_order": "check_order_mcp",
             "update_order": "collect_update_order_info",
             "refund": "collect_refund_info",
+            END: END,
         },
     )
 
@@ -138,11 +174,22 @@ def build_chat_graph() -> StateGraph:
         "check_order_mcp",
         _route_after_check,
         {
+            "confirm_after_sale": "confirm_after_sale",
+            END: END,
+        },
+    )
+
+    workflow.add_conditional_edges(
+        "confirm_after_sale",
+        _route_after_confirm,
+        {
+            "cancel_order_mcp": "cancel_order_mcp",
             "process_refund_mcp": "process_refund_mcp",
             END: END,
         },
     )
 
+    workflow.add_edge("cancel_order_mcp", END)
     workflow.add_edge("process_refund_mcp", END)
 
     return workflow.compile()
