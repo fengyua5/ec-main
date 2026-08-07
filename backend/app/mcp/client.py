@@ -116,6 +116,17 @@ class MCPClient:
         content = result.get("content", [{}])[0].get("text", "{}")
         return json.loads(content)
 
+    async def update_order_status(self, order_id: str, status: str) -> dict:
+        result = await self._send_request("tools/call", {
+            "name": "update_order_status",
+            "arguments": {
+                "order_id": order_id,
+                "status": status,
+            },
+        })
+        content = result.get("content", [{}])[0].get("text", "{}")
+        return json.loads(content)
+
     async def close(self) -> None:
         if self._process is not None and self._process.returncode is None:
             self._process.terminate()

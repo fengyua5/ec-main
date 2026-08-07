@@ -5,7 +5,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from app.db.session import SessionLocal
-from app.models.order import Order
+from app.domain.orders import get_order, update_order_status
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,18 @@ async def list_tools() -> list[types.Tool]:
                 "required": ["order_id", "reason", "amount"],
             },
         ),
+        types.Tool(
+            name="update_order_status",
+            description="修改订单状态，仅允许合法流转",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "string", "description": "订单号"},
+                    "status": {"type": "string", "description": "目标状态"},
+                },
+                "required": ["order_id", "status"],
+            },
+        ),
     ]
 
 
@@ -48,39 +60,50 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         order_id = arguments.get("order_id", "")
         db = SessionLocal()
         try:
-            order = db.query(Order).filter(Order.order_no == order_id).first()
-            if not order:
-                return [types.TextContent(type="text", text='{"status": "not_found", "message": "订单不存在"}')]
-
+            order = get_order(db, order_id)
             return [types.TextContent(
                 type="text",
                 text=f'{{"status": "{order.status}", "amount": "{order.amount}", "message": "订单查询成功"}}',
             )]
+        except Exception:
+            return [types.TextContent(type="text", text='{"status": "not_found", "message": "订单不存在"}')]
         finally:
             db.close()
 
     elif name == "process_refund":
         order_id = arguments.get("order_id", "")
-        reason = arguments.get("reason", "")
         amount = arguments.get("amount", "")
 
         db = SessionLocal()
         try:
-            order = db.query(Order).filter(Order.order_no == order_id).first()
-            if not order:
-                return [types.TextContent(type="text", text='{"success": false, "message": "订单不存在"}')]
-
-            if order.status != "pending_delivery":
-                return [types.TextContent(
-                    type="text",
-                    text=f'{{"success": false, "message": "订单当前状态为 {order.status}，无法退款"}}',
-                )]
-
-            order.status = "refunded"
-            db.commit()
+            order = update_order_status(db, order_id, "refunded")
             return [types.TextContent(
                 type="text",
                 text=f'{{"success": true, "message": "退款成功，金额 {amount}"}}',
+            )]
+        except Exception as exc:
+            return [types.TextContent(
+                type="text",
+                text=f'{{"success": false, "message": "{exc.detail if hasattr(exc, "detail") else str(exc)}"}}',
+            )]
+        finally:
+            db.close()
+
+    elif name == "update_order_status":
+        order_id = arguments.get("order_id", "")
+        target = arguments.get("status", "")
+
+        db = SessionLocal()
+        try:
+            order = update_order_status(db, order_id, target)
+            return [types.TextContent(
+                type="text",
+                text=f'{{"success": true, "order_no": "{order.order_no}", "status": "{order.status}", "message": "订单状态修改成功"}}',
+            )]
+        except Exception as exc:
+            return [types.TextContent(
+                type="text",
+                text=f'{{"success": false, "message": "{exc.detail if hasattr(exc, "detail") else str(exc)}"}}',
             )]
         finally:
             db.close()

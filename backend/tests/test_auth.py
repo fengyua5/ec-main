@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.models.user import Base
-from app.db.session import engine
+from app.models.user import Base, User
+from app.db.session import engine, SessionLocal
+from app.db.seed import seed_admin, DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD
 
 Base.metadata.create_all(bind=engine)
 
@@ -134,3 +135,42 @@ def test_invalid_email() -> None:
         "password": "password123",
     })
     assert response.status_code == 422
+
+
+def test_seed_admin_creates_default() -> None:
+    db = SessionLocal()
+    seed_admin(db)
+    db.close()
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == DEFAULT_ADMIN_EMAIL).first()
+    db.close()
+
+    assert user is not None
+    assert user.role == "admin"
+
+
+def test_seed_admin_skips_if_exists() -> None:
+    db = SessionLocal()
+    seed_admin(db)
+    seed_admin(db)
+    db.close()
+
+    db = SessionLocal()
+    count = db.query(User).filter(User.email == DEFAULT_ADMIN_EMAIL).count()
+    db.close()
+
+    assert count == 1
+
+
+def test_seed_admin_credentials_login() -> None:
+    db = SessionLocal()
+    seed_admin(db)
+    db.close()
+
+    response = client.post("/api/v1/admin/auth/login", json={
+        "email": DEFAULT_ADMIN_EMAIL,
+        "password": DEFAULT_ADMIN_PASSWORD,
+    })
+    assert response.status_code == 200
+    assert response.json()["user"]["role"] == "admin"
