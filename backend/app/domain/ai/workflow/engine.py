@@ -110,7 +110,7 @@ class ChatEngine:
             )
 
         updated_after_sale = result.get("skills", {}).get("after_sale", {})
-        if updated_after_sale and updated_after_sale != after_sale:
+        if updated_after_sale != after_sale:
             self.msg_repo.create(
                 db,
                 conversation_id,
