@@ -941,6 +941,8 @@ class TestNodes:
             assert result["mcp"]["order_status"] == "delivered"
             assert "ORD-123" in result["flow"]["response"]
             assert "已送达" in result["flow"]["response"]
+            assert "sub_intent" not in result["skills"]["after_sale"]
+            assert "order_no" not in result["skills"]["after_sale"]
 
     @pytest.mark.asyncio
     async def test_query_order_mcp_not_found(self) -> None:
@@ -1011,6 +1013,8 @@ class TestNodes:
             result = await update_order_mcp(state)
             assert result["mcp"]["update_success"] is True
             assert "ORD-456" in result["flow"]["response"]
+            assert "sub_intent" not in result["skills"]["after_sale"]
+            assert "order_no" not in result["skills"]["after_sale"]
 
     @pytest.mark.asyncio
     async def test_update_order_mcp_failure(self) -> None:
@@ -1282,6 +1286,20 @@ class TestMcpNodes:
             assert result["mcp"]["order_buyer_id"] == 7
             assert result["skills"]["after_sale"]["order_buyer_id"] == 7
             assert "response" not in result.get("flow", {})
+
+    @pytest.mark.asyncio
+    async def test_check_order_mcp_refund_pending_payment_rejected(self) -> None:
+        """退款子意图遇到 pending_payment 应拒绝（未付款无需退款），不进入确认环节"""
+        mock_client = MagicMock()
+        mock_client.check_order = AsyncMock(return_value={"status": "pending_payment", "buyer_id": 7, "amount": "199.00", "message": "订单查询成功"})
+
+        with patch("app.domain.ai.workflow.nodes.MCPClient.get_instance", return_value=mock_client):
+            state = make_state(
+                skills={"after_sale": {"sub_intent": "refund", "order_no": "ORD-UNPAID-001"}, "refund": {"reason": "不想要了", "amount": "199.00"}, "faq": {"context": []}},
+            )
+            result = await check_order_mcp(state)
+            assert result["mcp"]["order_status"] == "pending_payment"
+            assert "无需退款" in result["flow"]["response"]
 
     @pytest.mark.asyncio
     async def test_check_order_mcp_in_delivery(self) -> None:

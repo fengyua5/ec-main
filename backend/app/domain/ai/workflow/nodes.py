@@ -219,6 +219,8 @@ async def check_order_mcp(state: ConversationState) -> dict:
         logger.info("MCP check_order: order=%s status=%s", order_id, status)
 
         if status in ("pending_payment", "pending_delivery"):
+            if sub_intent == "refund" and status == "pending_payment":
+                return {"mcp": {"order_status": status}, "flow": {"response": "您的订单尚未付款，无需退款。"}}
             after_sale["order_buyer_id"] = buyer_id
             return {
                 "mcp": {"order_status": status, "order_buyer_id": buyer_id},
@@ -455,11 +457,16 @@ async def query_order_mcp(state: ConversationState) -> dict:
             return {"mcp": {"order_status": "error"}, "flow": {"response": "订单查询失败，请稍后重试或转人工客服。"}}
 
         status_label = _ORDER_STATUS_LABELS.get(status, status)
+        after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+        after_sale.pop("sub_intent", None)
+        after_sale.pop("order_no", None)
+        after_sale.pop("confirmed", None)
         return {
             "mcp": {"order_status": status},
             "flow": {
                 "response": f"订单 {order_id} 查询成功：金额 ¥{result.get('amount', '?')}，状态 {status_label}，创建时间 {result.get('created_at', '?')}。"
             },
+            "skills": _merge_skills(state, after_sale=after_sale),
         }
     except Exception as e:
         logger.error("MCP query_order 异常: %s", e)
@@ -501,7 +508,12 @@ async def update_order_mcp(state: ConversationState) -> dict:
         result = await client.update_order_status(order_id, status)
         if result.get("success"):
             logger.info("MCP update_order: order=%s 修改为 %s", order_id, status)
-            return {"mcp": {"update_success": True}, "flow": {"response": f"订单 {order_id} 已成功修改为「{status}」状态。"}}
+            after_sale = dict(state.get("skills", {}).get("after_sale", {}))
+            after_sale.pop("sub_intent", None)
+            after_sale.pop("order_no", None)
+            after_sale.pop("confirmed", None)
+            after_sale["update_order"] = {}
+            return {"mcp": {"update_success": True}, "flow": {"response": f"订单 {order_id} 已成功修改为「{status}」状态。"}, "skills": _merge_skills(state, after_sale=after_sale)}
         else:
             logger.warning("MCP update_order: order=%s 修改失败: %s", order_id, result.get("message", ""))
             return {"mcp": {"update_success": False}, "flow": {"response": f"订单修改失败：{result.get('message', '未知错误')}"}}
