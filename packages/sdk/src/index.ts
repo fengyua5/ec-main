@@ -14,3 +14,7 @@ export {
   replyToConversation,
 } from "./admin";
 export type { FAQDocument, AdminConversation } from "./admin";
+export { getOrders, getOrder, updateOrderStatus } from "./orders";
+export type { Order, OrderStatus, OrderListResponse } from "./orders";
+export { getUsers, getUser, setUserActive } from "./users";
+export type { AdminUser, UserListResponse, UserStatusFilter } from "./users";
