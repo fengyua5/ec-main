@@ -101,14 +101,15 @@ class MemoryUpdateResult:
 
 - 后端新增 `POST /api/v1/web/ai/conversations/{id}/close`：
   - 会话 `status -> "closed"`。
-  - 对该会话全部消息（或 close 后新增的消息）执行 `update_memory`。
-  - 关闭后该会话不再被复用为新会话；后续买家再进 `/ai` 由 `get_active_by_buyer` 创建/使用新 active 会话。
-
+  - 对该会话**全部** user/ai 消息执行 `update_memory`（价值判断会丢弃无需长期保留的内容）。
+  - close 后该会话不再被复用为"本次会话"。
 - 前端 `use-sse-chat` 页面卸载 / 离开导航时用 `navigator.sendBeacon` 触发 close（不阻塞、失败静默）。sendBeacon 仅支持 POST，body 可为空。
+
+**配套调整（保证关闭语义成立）**：买家端 `GET /api/v1/web/ai/conversations` 只返回 active 会话。前端 `loadConversation` 因此只会续接 active 会话；无 active 会话时 `conversationId=null`，发消息时后端新建 active 会话。这样每次访问形成一个清晰的会话边界，closed 会话永不续接，也不会把整段跨天历史塞进上下文中（历史沉淀进记忆块）。
 
 **时机 B：用户明确要求记忆**
 
-`process_message` 开头做轻量检测（关键词：记住 / 请记住 / 以后叫我 / 我的 / 备注…），命中则同一轮内同步执行 `update_memory`，并把"已记下"写进 AI 回复。检测为启发式：关键词命中不代表一定要写入，最终写入与否仍由 `update_memory` 的价值判断决定。
+`process_message` 开头做轻量检测（关键词：记住 / 请记住 / 以后叫我 / 备注 / 帮我记着…），命中则同一轮内同步执行 `update_memory`，并把"已记下"写进 AI 回复。检测为启发式：关键词命中不代表一定要写入，最终写入与否仍由 `update_memory` 的价值判断决定。
 
 ### 5. 引擎集成（`engine.py` / `api/web/ai.py`）
 
@@ -133,7 +134,7 @@ class MemoryUpdateResult:
 
 - `test_buyer_memory.py`（新）：`get_by_buyer` / 首次插入 / 版本乐观锁（旧版本写失败）/ upsert 成功后 version+1。
 - `test_memory_update.py`（新）：mock LLM——有价值事实 → changed=True 且落库；无价值闲聊 → changed=False 不落库；LLM 报错 → 返回 error 不抛异常。
-- `test_ai_memory_injection.py`（新）：记忆块注入为 SystemMessage 且位于 trim 摘要之前；pl类无关键词；显式记忆命中返回确认文案。
+- `test_ai_memory_injection.py`（新）：记忆块注入为 SystemMessage 且位于 trim 摘要之前；无记忆块时不注入；显式记忆命中返回确认文案。
 - `test_ai_workflow.py`：现有意图路由回归（注入 SystemMessage 不破坏 FAQ/售后/人工路由）。
 - `test_api_ai.py` / 相应 API 测试：`POST /conversations/{id}/close` 标记 closed 并触发记忆抽取。
 
