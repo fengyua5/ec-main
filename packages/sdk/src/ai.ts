@@ -154,3 +154,14 @@ export function replyToConversation(
     },
   );
 }
+
+/** Close a conversation (triggers memory extraction) */
+export function closeConversation(
+  client: ApiClient,
+  conversationId: number,
+): Promise<{ id: number; status: string }> {
+  return client.request<{ id: number; status: string }>(
+    `/api/v1/web/ai/conversations/${conversationId}/close`,
+    { method: "POST" },
+  );
+}
