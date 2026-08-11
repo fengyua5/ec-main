@@ -3,11 +3,13 @@ import json
 import logging
 from collections.abc import AsyncGenerator
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from sqlalchemy.orm import Session
 
 from app.domain.ai.llm.tracing import create_chat_trace, record_retrieval
 from app.domain.ai.models.conversation_repo import ConversationRepository, MessageRepository
+from app.domain.ai.memory.memory_service import get_memory_block, update_memory
+from app.domain.ai.workflow.compaction import trim_history
 from app.domain.ai.workflow.graph import build_chat_graph
 from app.domain.ai.workflow.state import ConversationState
 
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 _TOKEN_CHUNK_SIZE = 4
 _TOKEN_CHUNK_INTERVAL = 0.02
+_MEMORY_KEYWORDS = ("记住", "请记住", "以后叫我", "备注", "帮我记着")
 
 
 class ChatEngine:
@@ -44,6 +47,10 @@ class ChatEngine:
         except Exception as e:
             logger.warning("Langfuse 记录检索元数据失败: %s", e)
 
+    @staticmethod
+    def _detect_memory_request(user_message: str) -> bool:
+        return any(kw in user_message for kw in _MEMORY_KEYWORDS)
+
     async def process_message(
         self,
         db: Session,
@@ -54,14 +61,14 @@ class ChatEngine:
 
         db_messages = self.msg_repo.list_by_conversation(db, conversation_id)
 
-        lc_messages: list = []
+        history_messages: list = []
         refund_info: dict = {}
         after_sale: dict = {}
         for msg in db_messages:
             if msg.sender == "user":
-                lc_messages.append(HumanMessage(content=msg.content))
+                history_messages.append(HumanMessage(content=msg.content))
             elif msg.sender == "ai":
-                lc_messages.append(AIMessage(content=msg.content))
+                history_messages.append(AIMessage(content=msg.content))
             elif msg.sender == "system" and msg.msg_type == "refund_info":
                 try:
                     refund_info = json.loads(msg.content)
@@ -73,6 +80,28 @@ class ChatEngine:
                 except (json.JSONDecodeError, TypeError):
                     after_sale = {}
 
+        conv_repo = ConversationRepository()
+        conv = conv_repo.get_by_id(db, conversation_id)
+        buyer_id = conv.buyer_id if conv else 1
+
+        memory_block = await get_memory_block(db, buyer_id)
+        is_memory_request = self._detect_memory_request(user_message)
+
+        trimmed = await trim_history(history_messages)
+        if trimmed.trimmed:
+            logger.info(
+                "上下文剪裁: 会话 %d 历史 %d 条 (%d tokens) 超预算 %d tokens，压缩为摘要并保留最近 %d 条",
+                conversation_id,
+                len(history_messages),
+                trimmed.total_tokens,
+                trimmed.budget_tokens,
+                trimmed.kept_count,
+            )
+
+        lc_messages: list = []
+        if memory_block:
+            lc_messages.append(SystemMessage(content=memory_block))
+        lc_messages.extend(trimmed.messages)
         lc_messages.append(HumanMessage(content=user_message))
 
         state: ConversationState = {
@@ -127,4 +156,12 @@ class ChatEngine:
         for i in range(0, len(response), _TOKEN_CHUNK_SIZE):
             yield {"type": "token", "content": response[i:i + _TOKEN_CHUNK_SIZE]}
             await asyncio.sleep(_TOKEN_CHUNK_INTERVAL)
+        if is_memory_request:
+            all_msgs = list(trimmed.messages) + [HumanMessage(content=user_message)]
+            if result.get("flow", {}).get("response"):
+                all_msgs.append(AIMessage(content=result["flow"]["response"]))
+            mem_result = await update_memory(db, buyer_id, all_msgs)
+            if mem_result.changed:
+                response = result["flow"].get("response", "")
+                result["flow"]["response"] = response + "好的，我已记下。"
         yield {"type": "done"}
