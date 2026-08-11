@@ -36,6 +36,19 @@ export function useSSEChat() {
     loadConversation();
   }, []);
 
+  useEffect(() => {
+    const handleUnload = () => {
+      if (!conversationId) return;
+      const url = `${client.baseUrl}/api/v1/web/ai/conversations/${conversationId}/close`;
+      navigator.sendBeacon(url, new Blob([], { type: "application/json" }));
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+      handleUnload();
+    };
+  }, [conversationId]);
+
   async function loadConversation() {
     try {
       const { conversations } = await getConversations(client);
