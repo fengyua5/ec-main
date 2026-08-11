@@ -4,5 +4,6 @@ from app.models.message import Message
 from app.models.faq_document import FAQDocument
 from app.models.order import Order
 from app.models.after_sale_case import AfterSaleCase
+from app.models.buyer_memory import BuyerMemory
 
-__all__ = ["User", "Conversation", "Message", "FAQDocument", "Order", "AfterSaleCase"]
+__all__ = ["User", "Conversation", "Message", "FAQDocument", "Order", "AfterSaleCase", "BuyerMemory"]
