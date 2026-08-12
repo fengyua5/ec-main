@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.domain.ai.memory.memory_service import update_memory, get_memory_block
+from app.domain.ai.memory.prompts import memory_update_prompt
 from app.models.user import Base
 from app.db.session import engine, SessionLocal
 
@@ -15,6 +16,49 @@ def _clean_db() -> None:
 
 
 class TestUpdateMemory:
+    def test_memory_update_prompt_template_variables(self) -> None:
+        """记忆提示词模板应只声明 old_memory/conversation 两个变量。
+
+        回归保护：提示词里 JSON 字面量 {{"changed": ...}} 若只写单层大括号，
+        ChatPromptTemplate 会把它当成第三个模板变量，导致格式化必报错、
+        记忆永远无法保存（离开页面回来后喜好丢失）。
+        """
+        assert set(memory_update_prompt.input_variables) == {"old_memory", "conversation"}
+
+    @pytest.mark.asyncio
+    async def test_changed_persists_new_memory_with_real_prompt(self) -> None:
+        """用真实 memory_update_prompt 打通 update_memory：喜好应能落库。"""
+        db = SessionLocal()
+        try:
+            from langchain_core.messages import HumanMessage, AIMessage
+            from langchain_core.runnables import RunnableLambda
+
+            fake_response = RunnableLambda(
+                lambda _: MagicMock(
+                    content='{"changed": true, "content": "【偏好】喜欢穿红色"}'
+                )
+            )
+
+            with patch(
+                "app.domain.ai.memory.memory_service.get_chat_llm",
+                return_value=fake_response,
+            ):
+                messages = [
+                    HumanMessage(content="请记住，我喜欢穿红色的衣服"),
+                    AIMessage(content="好的，我会记住您喜欢穿红色。"),
+                ]
+
+                result = await update_memory(db, buyer_id=1, conversation_messages=messages)
+                assert result.changed is True, result.error
+                assert "红色" in result.content
+
+                from app.domain.ai.memory.memory_repo import get_by_buyer
+                mem = get_by_buyer(db, buyer_id=1)
+                assert mem is not None
+                assert "红色" in mem.content
+        finally:
+            db.close()
+
     @pytest.mark.asyncio
     async def test_changed_persists_new_memory(self) -> None:
         db = SessionLocal()

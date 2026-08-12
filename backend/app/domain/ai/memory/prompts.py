@@ -11,10 +11,10 @@ MEMORY_UPDATE_SYSTEM_PROMPT = """你是一个长期记忆更新器。你的任�
 【历史事件】xxx
 【待办/前情】xxx
 4. 如果旧记忆块已有信息，保留并合并新信息，不要丢失旧事实。
-5. 如果对话中没有值得记住的信息，返回 {"changed": false}。
+5. 如果对话中没有值得记住的信息，返回 {{"changed": false}}。
 
 返回 JSON 格式：
-{"changed": true/false, "content": "新记忆块文本（changed=true 时）"}"""
+{{"changed": true/false, "content": "新记忆块文本（changed=true 时）"}}"""
 
 memory_update_prompt = ChatPromptTemplate.from_messages([
     ("system", MEMORY_UPDATE_SYSTEM_PROMPT),
