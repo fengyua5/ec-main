@@ -57,7 +57,7 @@ class ChatEngine:
         conversation_id: int,
         user_message: str,
     ) -> AsyncGenerator[dict, None]:
-        yield {"type": "status", "content": "正在查找中..."}
+        yield {"type": "status", "content": "正在查找中...", "conversation_id": conversation_id}
 
         db_messages = self.msg_repo.list_by_conversation(db, conversation_id)
 

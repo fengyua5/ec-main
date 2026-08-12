@@ -54,7 +54,6 @@ export function useSSEChat() {
       const { conversations } = await getConversations(client);
       if (conversations.length > 0) {
         const latest = conversations[0];
-        setConversationId(latest.id);
         const { messages: msgs } = await getMessages(client, latest.id);
         setMessages(msgs);
       }
@@ -70,6 +69,9 @@ export function useSSEChat() {
       if (event.type === "status") {
         if (pendingTextRef.current) {
           pendingTextRef.current.textContent = event.content ?? "";
+        }
+        if (event.conversation_id) {
+          setConversationId(event.conversation_id);
         }
       } else if (event.type === "token") {
         streamContentRef.current += event.content ?? "";
