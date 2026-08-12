@@ -1,14 +1,16 @@
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.deps import get_db
+from app.domain.ai.memory.memory_service import update_memory
 from app.domain.ai.models.conversation_repo import ConversationRepository, MessageRepository
 from app.domain.ai.workflow.engine import ChatEngine
+from langchain_core.messages import AIMessage, HumanMessage
 
 
 class ChatRequest(BaseModel):
@@ -97,3 +99,28 @@ def get_messages(
     repo = MessageRepository()
     messages = repo.list_by_conversation(db, conversation_id, limit=limit, offset=offset)
     return MessageListResponse(messages=messages)
+
+
+@router.post("/conversations/{conversation_id}/close")
+async def close_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+) -> dict:
+    repo = ConversationRepository()
+    conv = repo.get_by_id(db, conversation_id)
+    if conv is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    msg_repo = MessageRepository()
+    db_messages = msg_repo.list_by_conversation(db, conversation_id, limit=200)
+    conversation_messages = []
+    for msg in db_messages:
+        if msg.sender == "user":
+            conversation_messages.append(HumanMessage(content=msg.content))
+        elif msg.sender == "ai":
+            conversation_messages.append(AIMessage(content=msg.content))
+
+    if conversation_messages:
+        await update_memory(db, conv.buyer_id, conversation_messages)
+
+    return {"id": conversation_id, "status": "active"}

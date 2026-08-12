@@ -135,3 +135,55 @@ def test_get_messages_with_limit_offset() -> None:
     assert response.status_code == 200
     data = response.json()
     assert len(data["messages"]) == 2
+
+
+def test_list_conversations_returns_all() -> None:
+    repo = ConversationRepository()
+    db = SessionLocal()
+    try:
+        conv1 = repo.create(db, buyer_id=1)
+        conv2 = repo.create(db, buyer_id=1)
+        conv1_id = conv1.id
+        conv2_id = conv2.id
+    finally:
+        db.close()
+
+    response = client.get("/api/v1/web/ai/conversations")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["conversations"]) == 2
+    ids = {c["id"] for c in data["conversations"]}
+    assert conv1_id in ids
+    assert conv2_id in ids
+
+
+def test_close_conversation() -> None:
+    repo = ConversationRepository()
+    db = SessionLocal()
+    try:
+        conv = repo.create(db, buyer_id=1)
+        conv_id = conv.id
+    finally:
+        db.close()
+
+    with patch("app.api.web.ai.ChatEngine.process_message") as mock_process:
+        async def _empty_gen(*args, **kwargs):
+            return
+            yield  # make it async generator
+        mock_process.side_effect = _empty_gen
+
+        response = client.post(f"/api/v1/web/ai/conversations/{conv_id}/close")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "active"
+
+
+def test_close_nonexistent_conversation() -> None:
+    with patch("app.api.web.ai.ChatEngine.process_message") as mock_process:
+        async def _empty_gen(*args, **kwargs):
+            return
+            yield
+        mock_process.side_effect = _empty_gen
+
+        response = client.post("/api/v1/web/ai/conversations/99999/close")
+        assert response.status_code == 404
