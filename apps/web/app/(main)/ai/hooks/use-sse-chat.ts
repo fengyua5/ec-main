@@ -53,11 +53,16 @@ export function useSSEChat() {
   async function loadConversation() {
     try {
       const { conversations } = await getConversations(client);
-      if (conversations.length > 0) {
-        const latest = conversations[0];
-        const { messages: msgs } = await getMessages(client, latest.id);
-        setMessages(msgs);
+      const history: Message[] = [];
+      for (const conv of conversations) {
+        const { messages: msgs } = await getMessages(client, conv.id);
+        history.push(...msgs);
       }
+      history.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+      setMessages(history);
     } catch {
       // no conversations yet
     }
