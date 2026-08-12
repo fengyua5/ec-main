@@ -13,6 +13,7 @@ from app.domain.ai.workflow.nodes import (
     enter_after_sale,
     ensure_order_no,
     handle_greeting,
+    handle_memory,
     handoff_human,
     process_refund,
     process_refund_mcp,
@@ -82,6 +83,7 @@ def build_chat_graph() -> StateGraph:
 
     workflow.add_node("classify_intent", classify_intent)
     workflow.add_node("handle_greeting", handle_greeting)
+    workflow.add_node("handle_memory", handle_memory)
     workflow.add_node("retrieve_faq", retrieve_faq)
     workflow.add_node("answer_faq", answer_faq)
     workflow.add_node("enter_after_sale", enter_after_sale)
@@ -108,6 +110,7 @@ def build_chat_graph() -> StateGraph:
             "faq": "retrieve_faq",
             "after_sale": "enter_after_sale",
             "human": "handoff_human",
+            "memory": "handle_memory",
         },
     )
 
@@ -144,6 +147,7 @@ def build_chat_graph() -> StateGraph:
     )
 
     workflow.add_edge("handle_greeting", END)
+    workflow.add_edge("handle_memory", END)
     workflow.add_edge("answer_faq", END)
     workflow.add_edge("process_refund", END)
     workflow.add_edge("handoff_human", END)

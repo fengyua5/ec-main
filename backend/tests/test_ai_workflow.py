@@ -16,6 +16,7 @@ from app.domain.ai.workflow.nodes import (
     enter_after_sale,
     ensure_order_no,
     handle_greeting,
+    handle_memory,
     handoff_human,
     process_refund,
     process_refund_mcp,
@@ -65,6 +66,7 @@ class TestGraph:
         expected = {
             "classify_intent",
             "handle_greeting",
+            "handle_memory",
             "retrieve_faq",
             "answer_faq",
             "collect_refund_info",
@@ -102,6 +104,35 @@ class TestGraph:
             )
             result = await graph.ainvoke(state)
             assert result.get("flow", {}).get("response") != ""
+
+    @pytest.mark.asyncio
+    async def test_memory_routing(self) -> None:
+        """memory 意图应路由到 handle_memory，基于记忆块生成回答。"""
+        with patch(
+            "app.domain.ai.workflow.nodes.intent_prompt"
+        ) as mock_prompt, \
+            patch("app.domain.ai.workflow.nodes.memory_answer_prompt") as mock_mem_prompt:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content='{"intent": "memory", "confidence": 0.9}'
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            mock_mem_chain = AsyncMock()
+            mock_mem_chain.ainvoke.return_value = MagicMock(
+                content="您喜欢打台球。"
+            )
+            mock_mem_prompt.__or__.return_value = mock_mem_chain
+
+            from langchain_core.messages import HumanMessage
+            graph = build_chat_graph()
+            state = make_state(
+                flow={"intent": "memory"},
+                memory="以下是用户长期信息：\n【偏好】喜欢打台球",
+                messages=[HumanMessage(content="我喜欢什么")],
+            )
+            result = await graph.ainvoke(state)
+            assert "打台球" in result.get("flow", {}).get("response", "")
 
     @pytest.mark.asyncio
     async def test_human_routing(self) -> None:
@@ -560,6 +591,32 @@ class TestGraph:
 
 
 class TestNodes:
+    @pytest.mark.asyncio
+    async def test_handle_memory_with_block_answers_from_memory(self) -> None:
+        """存在记忆块时，handle_memory 应基于记忆内容回答（而不是固定问候语）。"""
+        with patch("app.domain.ai.workflow.nodes.memory_answer_prompt") as mock_prompt, \
+             patch("app.domain.ai.workflow.nodes.get_chat_llm") as mock_llm_cls:
+            mock_chain = AsyncMock()
+            mock_chain.ainvoke.return_value = MagicMock(
+                content="您喜欢打台球。"
+            )
+            mock_prompt.__or__.return_value = mock_chain
+
+            from langchain_core.messages import HumanMessage
+            state = make_state(
+                memory="以下是用户长期信息：\n【偏好】喜欢打台球",
+                messages=[HumanMessage(content="我喜欢什么")],
+            )
+            result = await handle_memory(state)
+            assert "打台球" in result["flow"]["response"]
+
+    @pytest.mark.asyncio
+    async def test_handle_memory_without_block_answers_honestly(self) -> None:
+        """无记忆块时，handle_memory 应如实告知未记录，不应编造。"""
+        state = make_state(messages=[MagicMock(content="我喜欢什么")])
+        result = await handle_memory(state)
+        assert "记录" in result["flow"]["response"] or "暂无" in result["flow"]["response"]
+
     @pytest.mark.asyncio
     async def test_handle_greeting(self) -> None:
         state = make_state()
@@ -1166,6 +1223,10 @@ class TestGraphRoutingLogic:
     def test_route_after_intent_greeting(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent
         assert _route_after_intent(make_state(flow={"intent": "greeting"})) == "greeting"
+
+    def test_route_after_intent_memory(self) -> None:
+        from app.domain.ai.workflow.graph import _route_after_intent
+        assert _route_after_intent(make_state(flow={"intent": "memory"})) == "memory"
 
     def test_route_after_intent_faq(self) -> None:
         from app.domain.ai.workflow.graph import _route_after_intent

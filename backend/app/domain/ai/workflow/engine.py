@@ -118,6 +118,7 @@ class ChatEngine:
                 "faq": {"context": []},
             },
             "mcp": {},
+            "memory": memory_block,
         }
 
         handler, trace_id = create_chat_trace()

@@ -8,3 +8,4 @@ class ConversationState(TypedDict):
     flow: dict
     skills: dict[str, Any]
     mcp: dict
+    memory: str | None

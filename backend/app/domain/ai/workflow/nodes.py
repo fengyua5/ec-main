@@ -12,6 +12,7 @@ from app.domain.ai.llm.prompts import (
     intent_prompt,
     sub_intent_prompt,
     faq_prompt,
+    memory_answer_prompt,
 )
 from app.domain.ai.rag import FaqIndexService, FaqRetriever
 from app.mcp.client import MCPClient
@@ -99,6 +100,26 @@ async def classify_intent(state: ConversationState) -> dict:
 async def handle_greeting(state: ConversationState) -> dict:
     logger.info("问候处理: 返回欢迎语")
     return {"flow": {"response": GREETING_RESPONSE}}
+
+
+async def handle_memory(state: ConversationState) -> dict:
+    memory = state.get("memory")
+    last_user_msg = None
+    for m in reversed(state["messages"]):
+        if isinstance(m, HumanMessage):
+            last_user_msg = m.content
+            break
+
+    if not memory or not last_user_msg:
+        logger.info("记忆处理: 无记忆块或无用户消息，返回兜底")
+        return {"flow": {"response": "我暂时还没有记录到相关信息，您可以告诉我，我会帮您记下来。"}}
+
+    llm = get_chat_llm(temperature=0, streaming=False)
+    chain = memory_answer_prompt | llm
+    response = await chain.ainvoke({"memory": memory, "question": last_user_msg})
+
+    logger.info("记忆处理: 基于记忆生成回复（长度 %d 字符）", len(response.content))
+    return {"flow": {"response": response.content}}
 
 
 async def retrieve_faq(state: ConversationState) -> dict:
