@@ -12,6 +12,7 @@ type SSEEvent = {
   type: "status" | "intent" | "token" | "done" | "error";
   content?: string;
   value?: unknown;
+  conversation_id?: number;
 };
 
 export function useSSEChat() {
