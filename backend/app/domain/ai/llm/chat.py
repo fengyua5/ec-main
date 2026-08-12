@@ -9,6 +9,7 @@ def get_chat_llm(*, temperature: float = 0.0, streaming: bool = False) -> ChatOl
         base_url=settings.ollama_base_url,
         temperature=temperature,
         streaming=streaming,
+        num_ctx=settings.ollama_num_ctx,
     )
 
 

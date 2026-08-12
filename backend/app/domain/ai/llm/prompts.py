@@ -6,9 +6,10 @@ INTENT_SYSTEM_PROMPT = """你是一个客服意图分类器。你的任务是对
 - "after_sale": 用户有售后诉求，包括查询订单、修改订单、退款或退货
 - "human": 用户要求转接人工客服
 - "greeting": 用户打招呼或问候
+- "memory": 用户询问或陈述关于自己的长期信息（称呼、偏好、喜好、历史事件、待办），例如"我喜欢什么"、"你喜欢什么颜色"的可回答性判断以外，也包括"我喜欢红色"、"以后叫我小王"等对自己的陈述
 
 返回格式（只返回 JSON，不要其他内容）：
-{{"intent": "faq|after_sale|human|greeting", "confidence": 0.0-1.0}}"""
+{{"intent": "faq|after_sale|human|greeting|memory", "confidence": 0.0-1.0}}"""
 
 SUB_INTENT_SYSTEM_PROMPT = """你是一个售后子意图分类器。用户的诉求已被判定为售后，你的任务是对用户的消息进一步细分，只返回 JSON 格式的结果。
 分类类别：
@@ -34,6 +35,31 @@ FAQ_SYSTEM_PROMPT = """你是一个基于知识库的智能客服助手。你必
 用户问题：{question}"""
 
 GREETING_RESPONSE = "你好！我是 AI 智能客服，很高兴为您服务。请问有什么可以帮助您的？您可以询问常见问题、查询退款政策，或要求转接人工客服。"
+
+MEMORY_ANSWER_SYSTEM_PROMPT = """你是智能客服，需要根据用户长期记忆来回答用户关于自己称呼、偏好、喜好的询问。
+
+记忆内容：
+{memory}
+
+规则：
+1. 只能根据"记忆内容"中的信息回答，禁止编造或猜测。
+2. 如果记忆内容中没有与用户问题相关的信息，必须如实回复："我暂时还没有记录到相关信息，您可以告诉我，我会帮您记下来。"
+3. 回答自然、简洁、口语化。"""
+
+memory_answer_prompt = ChatPromptTemplate.from_messages([
+    ("system", MEMORY_ANSWER_SYSTEM_PROMPT),
+    ("human", "{question}"),
+])
+
+HISTORY_SUMMARY_SYSTEM_PROMPT = """请将以下客服对话历史压缩为简洁的中文摘要。要求：
+1. 必须保留所有关键事实：订单号（ORD-xxx 格式）、退款/售后诉求、金额、用户已确认的信息、尚未完成的操作步骤。
+2. 按时间顺序概括要点，不要遗漏对后续回复有影响的细节。
+3. 只输出摘要文本本身，不要任何前缀、解释或格式标记。"""
+
+history_summary_prompt = ChatPromptTemplate.from_messages([
+    ("system", HISTORY_SUMMARY_SYSTEM_PROMPT),
+    ("human", "{history}"),
+])
 
 intent_prompt = ChatPromptTemplate.from_messages([
     ("system", INTENT_SYSTEM_PROMPT),
