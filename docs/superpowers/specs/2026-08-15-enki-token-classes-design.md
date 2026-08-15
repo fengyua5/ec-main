@@ -34,7 +34,7 @@
 apps/web/app/design-tokens/
   refer/enki-cdn.css          # 新增：CDN 产物原件归档（只读，供审计，不 import）
   tokens.css                  # 修改：补充 font-family/lineheight 别名/elevation 中间值变量
-  enki.css                    # 新增：67 个 enki-* 组合类（@utility）
+  enki.css                    # 新增：67 个 enki-* 组合类（@layer components 普通 class）
   support-classes.css         # 修改：删除被 enki-* 取代的无前缀组合类
 apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 ```
@@ -54,7 +54,21 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 
 - **删除**现有 `support-classes.css` 中的无前缀 `display-*` / `heading-*` / `body-*` / `elevation-shadow-*` @utility（取值有偏差，被 enki-* 取代）。
 - **不删除**现有 token 变量（`--font-size-*`、`--font-weight-*`、`--font-leading-*` 等），enki 值在 tokens.css 中以追加方式补齐。
-- enki 组合类沿用 `@utility` 语法（Tailwind 按需生成、tree-shake 友好）；产出 CSS 的目标属性值完全对齐 CDN 产物。
+- enki 组合类以 **`@layer components` 普通 class** 实现（非 `@utility`），CSS 声明原样全量输出（与 CDN 产物一致）。
+
+### 3.4 为什么用 @layer components 而非 @utility
+
+enki 组合类是「组件基础默认样式」的角色（如基础组件默认 `enki-heading-xl`，外部再叠加自己的工具类定制）。此角色下 `@utility` 与 `@layer components` 的覆盖行为差异如下（本设计经 Tailwind v4 实验验证）：
+
+| 实现方式 | 外部叠加 `text-sm` 等内置工具类覆盖字体 | 原因 |
+|---|---|---|
+| `@utility` | **需加 `!`** | `@utility` 生成的自定义类排在 `@layer utilities` 内、且位于内置 utilities 之后，同 specificity 时后声明者胜，enki 会压制外部 text-sm |
+| `@layer components` 普通 class | **无需 `!`** | `@layer theme, base, components, utilities` 中 utilities 为最高优先 layer，天然覆盖 components 内声明 |
+| 无 layer 普通 class | 需加 `!` | 未分层样式优先于一切有层样式，仍会压制 utilities |
+
+因此 enki-* 采用 `@layer components`：
+- 外部用任何 utilities（`text-sm`、`font-bold`、`text-red-500`、自定义 `@utility` 等）覆盖时**无需 `!`**；
+- 组合类全量输出（67 类固定，不做按需生成，体积可控）；
 
 ## 四、变量补充（tokens.css）
 
@@ -109,7 +123,7 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 
 > 这是对现有变量的**原位替换**（非新增别名），与真实 enki 行为一致（letter-spacing 固定 px，不随字号放大）。注意：`semantic.css` 不映射 tracking，页面 `tracking-*` 工具类来自 Tailwind 内置的 `--tracking-*` 命名空间，与 `--font-tracking-*` 变量相互独立，故对本体系内引用（enki 组合类 + 现有无前缀字体类删除前的取值）无跨影响。
 
-### 4.4 elevation 基础尺寸（22 个）
+### 4.5 elevation 基础尺寸（22 个）
 
 ```css
 --size-elevation-blur-100..2200: 0px..80px;      /* 17 个，非等差，见 CDN */
@@ -119,11 +133,11 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 
 > 命名空间为 `size`（非 Tailwind `--spacing-*` 命名空间），避免干扰间距体系。
 
-### 4.5 elevation 组合值（9 个）
+### 4.6 elevation 组合值（9 个）
 
 `--style-elevation-1..9` 完全按 CDN 产物的双层 box-shadow 结构（`0 0 blur 0 tint, 0 distance blur 0 tint` 或单层），引用 `--size-elevation-*` 与 `--color-tint-black-25`（已存在于 tokens.css，值 `rgba(0,0,0,0.05)` 与 CDN 一致）。
 
-### 4.6 filter 值（4 个）
+### 4.7 filter 值（4 个）
 
 ```css
 --style-filter-lighten-1-hover:  brightness(105%) saturate(105%);
@@ -134,23 +148,25 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 
 ## 五、组合类实现（enki.css）
 
-每个组合类以 `@utility` 实现，属性集与 CDN 产物逐字对齐：
+enki.css 整体包裹在 `@layer components` 内，67 个类以普通 class 书写，属性集与 CDN 产物逐字对齐：
 
 ```css
-/* 示例：CDN 产物（.enki-display-3xl） */
-@utility enki-display-3xl {
-  letter-spacing: var(--display-3xl-tracking);
-  font-size: var(--display-3xl-size);
-  font-family: var(--display-3xl-family);
-  font-weight: var(--display-3xl-weight);
-  line-height: var(--display-3xl-lineheight);
-}
-@utility enki-display-3xl-strong {
-  letter-spacing: var(--display-3xl-tracking);
-  font-size: var(--display-3xl-size);
-  font-family: var(--display-3xl-family);
-  line-height: var(--display-3xl-lineheight);
-  font-weight: var(--display-3xl-weightstrong);
+@layer components {
+  /* 示例：CDN 产物（.enki-display-3xl） */
+  .enki-display-3xl {
+    letter-spacing: var(--display-3xl-tracking);
+    font-size: var(--display-3xl-size);
+    font-family: var(--display-3xl-family);
+    font-weight: var(--display-3xl-weight);
+    line-height: var(--display-3xl-lineheight);
+  }
+  .enki-display-3xl-strong {
+    letter-spacing: var(--display-3xl-tracking);
+    font-size: var(--display-3xl-size);
+    font-family: var(--display-3xl-family);
+    line-height: var(--display-3xl-lineheight);
+    font-weight: var(--display-3xl-weightstrong);
+  }
 }
 ```
 
@@ -160,14 +176,14 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
   ```css
   @media (hover: hover) {
     .enki-button-primary:hover { filter: var(--style-filter-lighten-1-hover); }
+    .enki-button-primary:active { filter: var(--style-filter-lighten-1-pressed); }
   }
   ```
-  > 因 `@utility` 内无法直接表达该媒体查询换用 Pseudo，采用 CDN 同款的非 @utility 兜底写法（见下）。
 - **elevation**（9 个）：`box-shadow: var(--style-elevation-N)`。
 
-### 5.1 button hover 的实现取舍
+### 5.1 button hover 的实现
 
-Tailwind `@utility` 支持 `&:hover`，但 CDN 产物使用 `@media (hover:hover)`，两者语义等价但产物结构不同。为使产物对齐 CDN，button 的 `:hover`/`:active` 过滤器将以普通 CSS 写法追加在 `enki.css` 内（非 `@utility`，因不受按需生成影响，仍直接生效）。
+CDN 产物使用 `@media (hover:hover)` 包裹 `:hover`/`:active` 过滤器，语义上与 Tailwind 的 `&:hover` 等价。为保证产物结构与 CDN 一致，且 `@layer components` 内可直接书写媒体查询，button 的过滤器直接写在 `@layer components` 块内（无需额外兜底层）。
 
 ## 六、字体栈全站切换
 
@@ -188,5 +204,6 @@ Tailwind `@utility` 支持 `&:hover`，但 CDN 产物使用 `@media (hover:hover
 1. `tsc --noEmit` 通过
 2. vitest 全量通过
 3. `next build` 无 CSS 警告
-4. 产物抽查：`.enki-display-3xl`、`.enki-body-base-strong`、`.enki-button-primary:hover`、`.enki-elevation-5` 已生成；`.display-3xl`（无前缀）不再生成
+4. 产物抽查：`.enki-display-3xl`、`.enki-body-base-strong`、`.enki-button-primary:hover`、`.enki-elevation-5` 存在于产物（`@layer components` 内）；`.display-3xl`（无前缀）不再存在
 5. 变量抽查：`--font-family-cjk-main`、`--font-lineheight-125`、`--style-elevation-5`、`--style-filter-lighten-1-hover` 存在于产物
+6. 覆盖行为验证（用户核心诉求）：同一元素同时带 `enki-heading-xl` 与 `text-sm` 时，生效字号为 `text-sm`（无需 `!`）；`enki-body-base` 与 `font-bold` 叠加时字重为 bold
