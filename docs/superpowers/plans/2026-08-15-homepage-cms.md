@@ -1500,7 +1500,7 @@ git commit -m "feat(sdk): 首页读取 + CMS 管理客户端函数"
 - Create: `apps/web/app/(main)/components/home-announcement.tsx`
 - Create: `apps/web/app/(main)/components/home-module-renderer.tsx`
 
-- [ ] **Step 1: 创建 `home-banner.tsx`**
+- [x] **Step 1: 创建 `home-banner.tsx`**
 
 ```tsx
 import type { BannerItem } from "@ec/sdk";
@@ -1532,7 +1532,7 @@ export function HomeBanner({ items }: Props) {
 }
 ```
 
-- [ ] **Step 2: 创建 `home-product-grid.tsx`**
+- [x] **Step 2: 创建 `home-product-grid.tsx`**
 
 ```tsx
 import type { Product } from "@ec/sdk";
@@ -1568,7 +1568,7 @@ export function HomeProductGrid({ items }: Props) {
 }
 ```
 
-- [ ] **Step 3: 创建 `home-announcement.tsx`**
+- [x] **Step 3: 创建 `home-announcement.tsx`**
 
 ```tsx
 import type { Announcement } from "@ec/sdk";
@@ -1592,7 +1592,7 @@ export function HomeAnnouncement({ items }: Props) {
 }
 ```
 
-- [ ] **Step 4: 创建 `home-module-renderer.tsx`**
+- [x] **Step 4: 创建 `home-module-renderer.tsx`**
 
 ```tsx
 import { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
@@ -1632,7 +1632,7 @@ export function HomeModuleRenderer({ modules, data }: Props) {
 }
 ```
 
-- [ ] **Step 5: 重写 `page.tsx`**
+- [x] **Step 5: 重写 `page.tsx`**
 
 ```tsx
 import {
@@ -1699,12 +1699,12 @@ export default async function HomePage() {
 }
 ```
 
-- [ ] **Step 6: 运行类型检查**
+- [x] **Step 6: 运行类型检查**
 
 Run: `cd apps/web && npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add apps/web/app/\(main\)/page.tsx apps/web/app/\(main\)/components/
@@ -1712,6 +1712,9 @@ git commit -m "feat(web): 首页按 CMS 配置渲染"
 ```
 
 ---
+
+
+> 质量评审后同步的补充修订:评审通过后一次清理提交 `70e29af`——`import type` 卫生(`page.tsx`/`home-module-renderer.tsx`)+ 5 个文件补齐 EOF 换行。全部非行为改动,`npx tsc --noEmit` 零错误。
 
 ### Task 7: web 首页测试
 
