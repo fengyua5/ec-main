@@ -40,3 +40,41 @@ def seed_orders(db: Session) -> None:
         db.add(Order(**data))
     db.commit()
     logger.info("种子数据: 已插入 %d 条订单", len(SEED_ORDERS_DATA))
+
+
+SEED_PRODUCTS = [
+    dict(title="示例商品 A", image_url="https://placehold.co/400x300?text=Product+A", price=9900, status="active", sort_order=1),
+    dict(title="示例商品 B", image_url="https://placehold.co/400x300?text=Product+B", price=12900, status="active", sort_order=2),
+    dict(title="示例商品 C", image_url="https://placehold.co/400x300?text=Product+C", price=19900, status="active", sort_order=3),
+]
+
+SEED_ANNOUNCEMENTS = [
+    dict(content="欢迎来到 EC Main,新用户首单享优惠。", is_enabled=True),
+    dict(content="平台维护公告:每周三凌晨 2:00-4:00 例行维护。", is_enabled=True),
+]
+
+
+def seed_cms(db: Session) -> None:
+    from app.models.home_module import HomeModule
+    from app.models.banner_item import BannerItem
+    from app.models.announcement import Announcement
+    from app.models.product import Product
+
+    if db.query(HomeModule).count() > 0:
+        db.query(BannerItem).delete()
+        db.query(Announcement).delete()
+        db.query(Product).delete()
+        db.commit()
+
+    if db.query(HomeModule).count() == 0:
+        db.add(HomeModule(module_type="banner", title="轮播 Banner", data_source_url="/api/v1/web/home/banner", sort_order=1, is_enabled=True))
+        db.add(HomeModule(module_type="product_recommend", title="推荐商品", data_source_url="/api/v1/web/products?status=active", sort_order=2, is_enabled=True))
+        db.add(HomeModule(module_type="announcement", title="平台公告", data_source_url="/api/v1/web/home/announcement", sort_order=3, is_enabled=True))
+        db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+1", link_url="https://example.com/1", sort_order=1, is_enabled=True))
+        db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+2", link_url="https://example.com/2", sort_order=2, is_enabled=True))
+        for data in SEED_ANNOUNCEMENTS:
+            db.add(Announcement(**data))
+        for data in SEED_PRODUCTS:
+            db.add(Product(**data))
+        db.commit()
+        logger.info("种子数据: 已初始化首页模块")

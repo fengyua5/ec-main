@@ -16,7 +16,7 @@ from app.core.config import settings
 from app.models.user import Base
 from app.db.session import engine, SessionLocal
 from app.db.migrate import ensure_user_is_active_column
-from app.db.seed import seed_orders, seed_admin
+from app.db.seed import seed_orders, seed_admin, seed_cms
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         seed_admin(db)
         seed_orders(db)
+        seed_cms(db)
     finally:
         db.close()
     yield
