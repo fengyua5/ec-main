@@ -5,8 +5,10 @@
 1. **静态 / 非交互页面**:使用 Server Component,直接 `await` SDK 调用。
 
 ```tsx
+const client = createApiClient({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000" });
+
 export default async function HomePage() {
-  const health = await checkHealth(getClient());
+  const health = await checkHealth(client);
   return <div>...{health}...</div>;
 }
 ```
@@ -20,10 +22,12 @@ export default async function HomePage() {
 const [data, setData] = useState<T>([]);
 const [loading, setLoading] = useState(false);
 
+const client = createApiClient({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000" });
+
 const loadOrders = useCallback(async () => {
   setLoading(true);
   try {
-    setData(await getOrders(getClient()));
+    setData(await getOrders(client));
   } finally {
     setLoading(false);
   }

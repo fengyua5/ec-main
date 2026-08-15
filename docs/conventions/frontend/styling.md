@@ -14,4 +14,4 @@
 ## 新颜色/品牌规范
 
 - 需要新色值 → 在 `tokens.css` 加根 token,再在语义层映射,禁止在组件里硬编码色值。
-- 参考 `apps/web/app/design-tokens/*.css`、`packages/config` 中两端的 token 约定。
+- token 定义参考 `apps/web/app/design-tokens/*.css`;admin 端如无对应 token 结构,先补齐再使用。
