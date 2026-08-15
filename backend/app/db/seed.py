@@ -61,20 +61,45 @@ def seed_cms(db: Session) -> None:
     from app.models.product import Product
 
     if db.query(HomeModule).count() > 0:
-        db.query(BannerItem).delete()
-        db.query(Announcement).delete()
-        db.query(Product).delete()
-        db.commit()
+        logger.info("种子数据: home_modules 已有记录，跳过")
+        return
 
-    if db.query(HomeModule).count() == 0:
-        db.add(HomeModule(module_type="banner", title="轮播 Banner", data_source_url="/api/v1/web/home/banner", sort_order=1, is_enabled=True))
-        db.add(HomeModule(module_type="product_recommend", title="推荐商品", data_source_url="/api/v1/web/products?status=active", sort_order=2, is_enabled=True))
-        db.add(HomeModule(module_type="announcement", title="平台公告", data_source_url="/api/v1/web/home/announcement", sort_order=3, is_enabled=True))
-        db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+1", link_url="https://example.com/1", sort_order=1, is_enabled=True))
-        db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+2", link_url="https://example.com/2", sort_order=2, is_enabled=True))
-        for data in SEED_ANNOUNCEMENTS:
-            db.add(Announcement(**data))
-        for data in SEED_PRODUCTS:
-            db.add(Product(**data))
-        db.commit()
-        logger.info("种子数据: 已初始化首页模块")
+    db.add(HomeModule(
+        module_type="banner",
+        title="轮播 Banner",
+        data_source_url="/api/v1/web/home/banner",
+        sort_order=1,
+        is_enabled=True,
+    ))
+    db.add(HomeModule(
+        module_type="product_recommend",
+        title="推荐商品",
+        data_source_url="/api/v1/web/products?status=active",
+        sort_order=2,
+        is_enabled=True,
+    ))
+    db.add(HomeModule(
+        module_type="announcement",
+        title="平台公告",
+        data_source_url="/api/v1/web/home/announcement",
+        sort_order=3,
+        is_enabled=True,
+    ))
+    db.add(BannerItem(
+        image_url="https://placehold.co/800x300?text=Banner+1",
+        link_url="https://example.com/1",
+        sort_order=1,
+        is_enabled=True,
+    ))
+    db.add(BannerItem(
+        image_url="https://placehold.co/800x300?text=Banner+2",
+        link_url="https://example.com/2",
+        sort_order=2,
+        is_enabled=True,
+    ))
+    for data in SEED_ANNOUNCEMENTS:
+        db.add(Announcement(**data))
+    for data in SEED_PRODUCTS:
+        db.add(Product(**data))
+    db.commit()
+    logger.info("种子数据: 已初始化首页模块")
