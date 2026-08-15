@@ -12,6 +12,8 @@ from app.api.admin.ai_faq import router as admin_ai_faq_router
 from app.api.admin.ai_chat import router as admin_ai_chat_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.admin.users import router as admin_users_router
+from app.api.web.home import router as web_home_router
+from app.api.admin.cms import router as admin_cms_router
 from app.core.config import settings
 from app.models.user import Base
 from app.db.session import engine, SessionLocal
@@ -56,3 +58,5 @@ app.include_router(admin_ai_faq_router, prefix="/api/v1/admin")
 app.include_router(admin_ai_chat_router, prefix="/api/v1/admin")
 app.include_router(admin_orders_router, prefix="/api/v1/admin")
 app.include_router(admin_users_router, prefix="/api/v1/admin")
+app.include_router(web_home_router, prefix="/api/v1/web")
+app.include_router(admin_cms_router, prefix="/api/v1/admin")
