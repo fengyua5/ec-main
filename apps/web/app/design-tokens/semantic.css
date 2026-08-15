@@ -1,0 +1,33 @@
+/**
+ * ec-main design token — @theme inline 桥接
+ *
+ * tokens.css 中的 `@theme {}` 已将下列变量自动暴露为 Tailwind 工具类：
+ *   --color-*        → bg-*/text-*/border-*（如 bg-primary-2、text-tabbar-fg-selected）
+ *   --spacing-*      → p-*/m-*/w-*/gap-*（如 p-400、gap-200）
+ *   --radius-*       → rounded-*（如 rounded-300）
+ *   --leading-*      → leading-*（如 leading-125）
+ *   --tracking-*     → tracking-*（如 tracking-wide）
+ *   --font-weight-*  → font-*（如 font-medium、font-bold）
+ *
+ * 此处仅补齐 Tailwind v4 的字号命名空间：v4 默认用 --text-*（text-xs 等），
+ * 而 token 统一存于 --font-size-*，故做一层扁平桥接，使 `text-3xs`..`text-10xl`
+ * 类名直接可用。
+ */
+@theme inline {
+  --text-3xs: var(--font-size-3xs);
+  --text-2xs: var(--font-size-2xs);
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: var(--font-size-xl);
+  --text-2xl: var(--font-size-2xl);
+  --text-3xl: var(--font-size-3xl);
+  --text-4xl: var(--font-size-4xl);
+  --text-5xl: var(--font-size-5xl);
+  --text-6xl: var(--font-size-6xl);
+  --text-7xl: var(--font-size-7xl);
+  --text-8xl: var(--font-size-8xl);
+  --text-9xl: var(--font-size-9xl);
+  --text-10xl: var(--font-size-10xl);
+}
