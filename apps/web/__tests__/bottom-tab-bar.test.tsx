@@ -24,7 +24,7 @@ describe("BottomTabBar", () => {
     mockUsePathname.mockReturnValue("/ai");
     render(<BottomTabBar />);
     const aiLabel = screen.getByText("AI 客服");
-    expect(aiLabel).toHaveClass("text-primary");
+    expect(aiLabel).toHaveClass("text-tabbar-fg-selected");
     expect(aiLabel).toHaveClass("font-medium");
   });
 

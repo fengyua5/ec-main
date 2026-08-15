@@ -17,18 +17,20 @@ export default async function HomePage() {
   const healthLabel = await getHealthLabel();
 
   return (
-    <div className="min-h-screen bg-zinc-50 px-6 py-10 text-zinc-950">
+    <div className="min-h-screen bg-surface-200-bg px-6 py-10 text-surface-100-fg-default">
       <section className="mx-auto flex max-w-5xl flex-col gap-8">
         <div className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-wide text-zinc-500">EC Main</p>
-          <h1 className="text-4xl font-semibold">买家端商城底座</h1>
-          <p className="max-w-2xl text-base leading-7 text-zinc-600">
+          <p className="body-sm font-medium uppercase tracking-wide text-surface-100-fg-minor">
+            EC Main
+          </p>
+          <h1 className="heading-3xl">买家端商城底座</h1>
+          <p className="body-base text-surface-100-fg-minor">
             这里是电商 MVP 的买家端入口，后续会承载首页、PDP、购物车、结算和订单体验。
           </p>
         </div>
         <div className="flex items-center gap-4">
           <Button>平台底座已就绪</Button>
-          <span className="text-sm text-zinc-500">{healthLabel}</span>
+          <span className="text-sm text-surface-100-fg-minor">{healthLabel}</span>
         </div>
       </section>
     </div>
