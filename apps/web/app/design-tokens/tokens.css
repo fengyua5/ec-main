@@ -294,4 +294,303 @@
   --color-tint-black-900: rgba(0,0,0,0.88);
   --color-tint-black-950: rgba(0,0,0,0.93);
   --color-tint-black-1000: #000000;
+
+  /* ────────────── Layer 2 语义色 ────────────── */
+  --color-primary-1: var(--color-root-energy-blue-dark-4);
+  --color-primary-2: var(--color-root-flow-teal-base-4);
+  --color-primary-3: var(--color-shade-cool-light-2);
+  --color-primary-4: var(--color-reserved-true-white);
+  --color-primary-5: var(--color-shade-neutral-dark-7);
+
+  --color-secondary-base-1: var(--color-root-energy-blue-base-4);
+  --color-secondary-base-2: var(--color-root-eggplant-purple-base-4);
+  --color-secondary-base-3: var(--color-root-dragonfruit-pink-base-4);
+  --color-secondary-light-1: var(--color-root-energy-blue-light-4);
+  --color-secondary-light-2: var(--color-root-eggplant-purple-light-2);
+  --color-secondary-light-3: var(--color-root-dragonfruit-pink-light-4);
+  --color-secondary-dark-1: var(--color-root-energy-blue-dark-6);
+  --color-secondary-dark-2: var(--color-root-eggplant-purple-dark-7);
+  --color-secondary-dark-3: var(--color-root-dragonfruit-pink-dark-4);
+
+  --color-tertiary-base-1: var(--color-root-tomato-red-base-4);
+  --color-tertiary-base-2: var(--color-root-mandarin-orange-base-4);
+  --color-tertiary-base-3: var(--color-root-jade-green-base-4);
+  --color-tertiary-base-4: var(--color-root-chive-green-base-4);
+  --color-tertiary-base-5: var(--color-root-durian-yellow-base-4);
+  --color-tertiary-light-1: var(--color-root-tomato-red-light-1);
+  --color-tertiary-light-2: var(--color-root-mandarin-orange-light-2);
+  --color-tertiary-light-3: var(--color-root-jade-green-light-2);
+  --color-tertiary-light-4: var(--color-root-chive-green-light-3);
+  --color-tertiary-light-5: var(--color-root-durian-yellow-light-2);
+  --color-tertiary-dark-1: var(--color-root-tomato-red-dark-4);
+  --color-tertiary-dark-2: var(--color-root-mandarin-orange-dark-3);
+  --color-tertiary-dark-3: var(--color-root-jade-green-dark-6);
+  --color-tertiary-dark-4: var(--color-root-chive-green-dark-6);
+  --color-tertiary-electric-1: var(--color-reserved-durian-yellow-electric);
+
+  --color-link-base-1: var(--color-root-energy-blue-base-4);
+
+  /* ────────────── 状态色 ────────────── */
+  --color-success-bg: var(--color-root-chive-green-light-1);
+  --color-success-fg: var(--color-root-chive-green-dark-7);
+  --color-success-hairline: var(--color-root-chive-green-light-5);
+  --color-success-txt: var(--color-root-chive-green-base-5);
+  --color-critical-bg: var(--color-tertiary-base-1);
+  --color-critical-fg: var(--color-reserved-true-white);
+  --color-critical-hairline: var(--color-root-tomato-red-dark-1);
+  --color-critical-txt: var(--color-root-tomato-red-dark-1);
+  --color-warning-bg: var(--color-root-durian-yellow-light-2);
+  --color-warning-fg: var(--color-root-durian-yellow-dark-6);
+  --color-warning-hairline: var(--color-root-durian-yellow-base-7);
+  --color-warning-txt: var(--color-root-durian-yellow-dark-1);
+  --color-highlight-bg: var(--color-root-eggplant-purple-light-2);
+  --color-highlight-fg: var(--color-root-eggplant-purple-dark-6);
+  --color-highlight-hairline: var(--color-root-eggplant-purple-base-2);
+  --color-highlight-txt: var(--color-root-eggplant-purple-base-7);
+  --color-pricing-bg: var(--color-root-tomato-red-base-4);
+  --color-pricing-fg: var(--color-reserved-true-white);
+  --color-pricing-txt: var(--color-root-tomato-red-dark-1);
+  --color-pricing-hairline: var(--color-reserved-true-white);
+
+  /* ────────────── Layer 3 组件语义 ────────────── */
+
+  /* surface */
+  --color-surface-100-bg: var(--color-reserved-true-white);
+  --color-surface-100-fg-default: var(--color-shade-cool-dark-7);
+  --color-surface-100-fg-minor: var(--color-shade-cool-base-7);
+  --color-surface-100-hairline: var(--color-shade-cool-light-4);
+  --color-surface-200-bg: var(--color-shade-cool-light-2);
+  --color-surface-200-fg-default: var(--color-shade-cool-dark-7);
+  --color-surface-200-fg-minor: var(--color-shade-cool-base-5);
+  --color-surface-200-hairline: var(--color-shade-cool-light-6);
+  --color-surface-300-bg: var(--color-shade-cool-light-4);
+  --color-surface-300-fg-default: var(--color-shade-cool-dark-7);
+  --color-surface-300-fg-minor: var(--color-shade-cool-base-5);
+  --color-surface-300-hairline: var(--color-shade-cool-light-7);
+  --color-surface-400-bg: var(--color-shade-cool-dark-5);
+  --color-surface-400-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-400-fg-minor: var(--color-shade-cool-base-4);
+  --color-surface-400-hairline: var(--color-shade-cool-dark-3);
+  --color-surface-500-bg: var(--color-shade-cool-dark-6);
+  --color-surface-500-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-500-fg-minor: var(--color-shade-cool-base-4);
+  --color-surface-500-hairline: var(--color-shade-cool-dark-3);
+  --color-surface-600-bg: var(--color-shade-cool-dark-7);
+  --color-surface-600-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-600-fg-minor: var(--color-shade-cool-base-4);
+  --color-surface-600-hairline: var(--color-shade-cool-dark-3);
+
+  /* 按钮 */
+  --color-btn-primary-bg: var(--color-primary-2);
+  --color-btn-primary-fg-default: var(--color-reserved-true-white);
+  --color-btn-primary-fg-minor: var(--color-shade-cool-light-1);
+  --color-btn-primary-hairline: var(--color-root-flow-teal-light-7);
+  --color-btn-secondary-bg: var(--color-primary-1);
+  --color-btn-secondary-fg-default: var(--color-reserved-true-white);
+  --color-btn-secondary-fg-minor: var(--color-shade-cool-light-1);
+  --color-btn-secondary-hairline: var(--color-root-energy-blue-base-7);
+  --color-btn-tertiary-bg: var(--color-surface-200-bg);
+  --color-btn-tertiary-fg-default: var(--color-surface-200-fg-default);
+  --color-btn-tertiary-fg-minor: var(--color-surface-200-fg-minor);
+  --color-btn-tertiary-hairline: var(--color-shade-cool-light-6);
+  --color-btn-confirmation-bg: var(--color-root-jade-green-base-4);
+  --color-btn-confirmation-fg-default: var(--color-reserved-true-white);
+  --color-btn-confirmation-fg-minor: var(--color-root-jade-green-light-3);
+  --color-btn-confirmation-hairline: var(--color-root-jade-green-base-7);
+  --color-btn-critical-bg: var(--color-root-tomato-red-base-4);
+  --color-btn-critical-fg-default: var(--color-reserved-true-white);
+  --color-btn-critical-fg-minor: var(--color-root-tomato-red-light-3);
+  --color-btn-critical-hairline: var(--color-root-tomato-red-base-1);
+  --color-btn-disabled-bg: var(--color-shade-cool-light-5);
+  --color-btn-disabled-fg-default: var(--color-shade-cool-base-5);
+  --color-btn-disabled-fg-minor: var(--color-shade-cool-base-3);
+  --color-btn-disabled-hairline: var(--color-shade-cool-light-7);
+
+  /* 输入框 */
+  --color-input-100-bg-default: var(--color-surface-100-bg);
+  --color-input-100-bg-active: var(--color-surface-100-bg);
+  --color-input-100-bg-disabled: var(--color-shade-neutral-light-3);
+  --color-input-100-bg-critical: var(--color-root-tomato-red-light-1);
+  --color-input-100-fg-default: var(--color-surface-100-fg-default);
+  --color-input-100-fg-placeholder: var(--color-surface-100-fg-minor);
+  --color-input-100-fg-disabled: var(--color-shade-neutral-base-5);
+  --color-input-100-fg-critical: var(--color-tertiary-base-1);
+  --color-input-100-hairline-default: var(--color-surface-100-hairline);
+  --color-input-100-hairline-active: var(--color-btn-secondary-bg);
+  --color-input-100-hairline-disabled: var(--color-shade-neutral-light-7);
+  --color-input-100-hairline-critical: var(--color-tertiary-base-1);
+  --color-input-100-icon-default: var(--color-surface-100-fg-minor);
+  --color-input-100-icon-active: var(--color-surface-100-fg-default);
+  --color-input-200-bg-default: var(--color-surface-200-bg);
+  --color-input-200-bg-active: var(--color-surface-100-bg);
+  --color-input-200-bg-disabled: var(--color-shade-neutral-light-3);
+  --color-input-200-bg-critical: var(--color-root-tomato-red-light-1);
+  --color-input-200-fg-default: var(--color-surface-100-fg-default);
+  --color-input-200-fg-placeholder: var(--color-surface-100-fg-minor);
+  --color-input-200-fg-disabled: var(--color-shade-neutral-base-5);
+  --color-input-200-fg-critical: var(--color-tertiary-base-1);
+  --color-input-200-hairline-default: var(--color-surface-200-hairline);
+  --color-input-200-hairline-active: var(--color-btn-secondary-bg);
+  --color-input-200-hairline-disabled: var(--color-shade-neutral-light-7);
+  --color-input-200-hairline-critical: var(--color-tertiary-base-1);
+  --color-input-200-icon-default: var(--color-surface-100-fg-minor);
+  --color-input-200-icon-active: var(--color-surface-100-fg-default);
+
+  /* 导航栏 / 底部 Tab */
+  --color-navbar-bg-default: var(--color-surface-100-bg);
+  --color-navbar-bg-highlight: var(--color-surface-100-bg);
+  --color-navbar-bg-selected: rgba(2,127,255,0.09);
+  --color-navbar-bg-transluscent: var(--color-tint-white-900);
+  --color-navbar-fg-default: var(--color-primary-1);
+  --color-navbar-fg-highlight: var(--color-secondary-base-2);
+  --color-navbar-fg-selected: var(--color-secondary-base-1);
+  --color-navbar-hairline: var(--color-surface-100-hairline);
+  --color-navbar-divider: var(--color-tint-black-50);
+  --color-navbar-logo: var(--color-primary-1);
+  --color-tabbar-bg: var(--color-surface-100-bg);
+  --color-tabbar-fg-default: var(--color-shade-cool-base-7);
+  --color-tabbar-fg-selected: var(--color-btn-secondary-bg);
+  --color-tabbar-hairline: var(--color-surface-100-hairline);
+
+  /* 覆盖层 */
+  --color-backdrop-50-bg: var(--color-tint-black-50);
+  --color-backdrop-100-bg: var(--color-tint-black-800);
+
+  /* 促销卡 */
+  --color-promotion-100-fg-default: var(--color-reserved-true-white);
+  --color-promotion-100-fg-minor: var(--color-root-dragonfruit-pink-light-4);
+  --color-promotion-100-bg-lighter: var(--color-root-dragonfruit-pink-light-4);
+  --color-promotion-100-bg-light: var(--color-root-dragonfruit-pink-base-1);
+  --color-promotion-100-bg-default: var(--color-root-dragonfruit-pink-base-4);
+  --color-promotion-100-bg-dark: var(--color-root-dragonfruit-pink-base-7);
+  --color-promotion-100-bg-darker: var(--color-root-dragonfruit-pink-dark-2);
+  --color-promotion-200-fg-default: var(--color-root-dragonfruit-pink-dark-1);
+  --color-promotion-200-bg-lighter: var(--color-reserved-true-white);
+  --color-promotion-200-bg-light: var(--color-root-dragonfruit-pink-light-2);
+  --color-promotion-200-bg-default: var(--color-root-dragonfruit-pink-light-3);
+  --color-promotion-200-bg-dark: var(--color-root-dragonfruit-pink-light-4);
+  --color-promotion-200-bg-darker: var(--color-root-dragonfruit-pink-light-5);
+  --color-promotion-300-fg-default: var(--color-primary-1);
+  --color-promotion-300-bg-lighter: var(--color-reserved-true-white);
+  --color-promotion-300-bg-light: var(--color-root-eggplant-purple-light-1);
+  --color-promotion-300-bg-default: var(--color-root-eggplant-purple-light-2);
+  --color-promotion-300-bg-dark: var(--color-root-eggplant-purple-light-5);
+  --color-promotion-300-bg-darker: var(--color-root-eggplant-purple-light-6);
+
+  /* ────────────── 尺寸：spacing ────────────── */
+  --spacing-0: 0px;
+  --spacing-50: 2px;
+  --spacing-100: 4px;
+  --spacing-200: 8px;
+  --spacing-300: 12px;
+  --spacing-400: 16px;
+  --spacing-500: 20px;
+  --spacing-600: 24px;
+  --spacing-700: 28px;
+  --spacing-800: 32px;
+  --spacing-900: 36px;
+  --spacing-1000: 40px;
+  --spacing-1100: 44px;
+  --spacing-1200: 48px;
+  --spacing-1300: 52px;
+  --spacing-1400: 56px;
+  --spacing-1500: 60px;
+  --spacing-1600: 64px;
+  --spacing-1700: 68px;
+  --spacing-1800: 72px;
+  --spacing-1900: 76px;
+  --spacing-2000: 80px;
+
+  /* ────────────── 尺寸：radius ────────────── */
+  --radius-100: 2px;
+  --radius-200: 4px;
+  --radius-300: 8px;
+  --radius-400: 12px;
+  --radius-500: 16px;
+  --radius-600: 20px;
+  --radius-700: 24px;
+  --radius-800: 28px;
+  --radius-full: 9999px;
+
+  /* ────────────── 尺寸：elevation ────────────── */
+  --elevation-distance-100: 1px;
+  --elevation-distance-200: 2px;
+  --elevation-distance-300: 6px;
+  --elevation-distance-400: 8px;
+  --elevation-distance-500: 10px;
+  --elevation-distance-600: 12px;
+  --elevation-distance-700: 14px;
+  --elevation-distance-800: 16px;
+  --elevation-distance-900: 18px;
+  --elevation-distance-1000: 20px;
+  --elevation-distance-1100: 22px;
+  --elevation-distance-1200: 24px;
+  --elevation-blur-100: 0px;
+  --elevation-blur-200: 4px;
+  --elevation-blur-300: 6px;
+  --elevation-blur-400: 8px;
+  --elevation-blur-500: 12px;
+  --elevation-blur-600: 16px;
+  --elevation-blur-700: 20px;
+  --elevation-blur-800: 24px;
+  --elevation-blur-900: 28px;
+  --elevation-blur-1000: 32px;
+  --elevation-blur-1100: 36px;
+  --elevation-blur-1200: 40px;
+  --elevation-blur-1300: 44px;
+  --elevation-blur-1400: 48px;
+  --elevation-blur-1800: 64px;
+  --elevation-blur-2200: 80px;
+  --elevation-spread-100: 1px;
+  --elevation-spread-200: 2px;
+  --elevation-spread-300: 3px;
+
+  --elevation-shadow-1: 0 0 0 1px rgb(0 0 0 / 0.05);
+  --elevation-shadow-2: 0 2px 6px 0 rgb(0 0 0 / 0.05);
+  --elevation-shadow-3: 0 2px 8px 0 rgb(0 0 0 / 0.05);
+  --elevation-shadow-4: 0 0 6px 0 rgb(0 0 0 / 0.05), 0 2px 12px 4px rgb(0 0 0 / 0.05);
+  --elevation-shadow-5: 0 0 8px 0 rgb(0 0 0 / 0.05), 0 8px 20px 8px rgb(0 0 0 / 0.05);
+  --elevation-shadow-6: 0 0 6px 0 rgb(0 0 0 / 0.05), 0 14px 32px 16px rgb(0 0 0 / 0.05);
+  --elevation-shadow-7: 0 0 6px 0 rgb(0 0 0 / 0.05), 0 24px 48px 24px rgb(0 0 0 / 0.05);
+  --elevation-shadow-8: 0 0 6px 0 rgb(0 0 0 / 0.05), 0 24px 64px 32px rgb(0 0 0 / 0.05);
+  --elevation-shadow-9: 0 0 6px 0 rgb(0 0 0 / 0.05), 0 24px 80px 40px rgb(0 0 0 / 0.05);
+
+  /* ────────────── 字体 ────────────── */
+  --font-size-3xs: 11px;
+  --font-size-2xs: 12px;
+  --font-size-xs: 13px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+  --font-size-6xl: 60px;
+  --font-size-7xl: 72px;
+  --font-size-8xl: 96px;
+  --font-size-9xl: 128px;
+  --font-size-10xl: 170px;
+
+  --font-weight-400: 400;
+  --font-weight-500: 500;
+  --font-weight-600: 600;
+  --font-weight-700: 700;
+  --font-weight-800: 800;
+
+  --font-leading-100: 1;
+  --font-leading-105: 1.05;
+  --font-leading-110: 1.1;
+  --font-leading-115: 1.15;
+  --font-leading-125: 1.25;
+  --font-leading-150: 1.5;
+
+  --font-tracking-tightest: -0.6em;
+  --font-tracking-tighter: -0.3em;
+  --font-tracking-tight: -0.2em;
+  --font-tracking-base: 0em;
+  --font-tracking-wide: 0.2em;
+  --font-tracking-wider: 0.3em;
+  --font-tracking-widest: 0.6em;
 }
