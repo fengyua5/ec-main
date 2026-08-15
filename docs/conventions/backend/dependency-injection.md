@@ -4,19 +4,19 @@
 
 - 数据库:`db: Session = Depends(get_db)`,浅注入。
 - 认证:嵌套依赖 `get_current_user`,路由通过 `Depends(get_current_user)` 引入。
-  - 仅需"已登录"但不需要用户对象的参数,命名用 `_` 前缀(`_current_user`)。
+- 仅需"已登录"但不需要用户对象的参数,命名用 `_` 前缀(`_current_user`);需要用户对象时用 `current_user`。
 
 ```python
-@router.get("/{order_no}", response_model=OrderResponse)
-def order_detail(
-    order_no: str,
+@router.get("/{user_id}", response_model=AdminUserResponse)
+def user_detail(
+    user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(get_current_user),
 ):
-    return OrderResponse.model_validate(get_order(db, order_no))
+    return AdminUserResponse.model_validate(get_user(db, user_id))
 ```
 
-  参考:`backend/app/db/deps.py`、`backend/app/domain/auth/deps.py`、`backend/app/api/admin/users.py`
+  参考:`backend/app/api/admin/users.py` 的 `user_detail`(仅认证)与 `change_user_active`(使用 current_user)
 
 ## 禁止
 
