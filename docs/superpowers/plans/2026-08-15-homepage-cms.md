@@ -928,24 +928,20 @@ def _clean_db() -> None:
             conn.execute(table.delete())
 
 
-def _seed_module(db_session) -> None:
-    from app.db.session import SessionLocal
+def _seed_module() -> None:
     db = SessionLocal()
-    from app.models.home_module import HomeModule
-    from app.models.banner_item import BannerItem
-    from app.models.announcement import Announcement
-    from app.models.product import Product
     db.add(HomeModule(module_type="banner", title="B", data_source_url="/api/v1/web/home/banner", sort_order=1, is_enabled=True))
     db.add(HomeModule(module_type="product_recommend", title="P", data_source_url="/api/v1/web/products?status=active", sort_order=2, is_enabled=False))
     db.add(BannerItem(image_url="https://x/b1.jpg", link_url="/p1", sort_order=1, is_enabled=True))
     db.add(Announcement(content="公告1", is_enabled=True))
     db.add(Product(title="商品1", image_url="", price=9900, status="active", sort_order=1))
+    db.add(Product(title="下架商品", image_url="", price=5000, status="inactive", sort_order=2))
     db.commit()
     db.close()
 
 
 def test_modules_returns_only_enabled() -> None:
-    _seed_module(None)
+    _seed_module()
     response = client.get("/api/v1/web/home/modules")
     assert response.status_code == 200
     modules = response.json()["modules"]
@@ -954,21 +950,21 @@ def test_modules_returns_only_enabled() -> None:
 
 
 def test_banner_returns_items() -> None:
-    _seed_module(None)
+    _seed_module()
     response = client.get("/api/v1/web/home/banner")
     assert response.status_code == 200
     assert len(response.json()["items"]) == 1
 
 
 def test_announcement_returns_items() -> None:
-    _seed_module(None)
+    _seed_module()
     response = client.get("/api/v1/web/home/announcement")
     assert response.status_code == 200
     assert response.json()["items"][0]["content"] == "公告1"
 
 
 def test_products_public_filters_active() -> None:
-    _seed_module(None)
+    _seed_module()
     response = client.get("/api/v1/web/home/products?status=active")
     assert response.status_code == 200
     data = response.json()
@@ -982,7 +978,7 @@ def test_modules_empty_when_no_data() -> None:
     assert response.json()["modules"] == []
 ```
 
-- [ ] **Step 2: 创建 `test_cms_api.py`**
+- [ ] **Step 2: 创建 `test_cms_api.py`(结构骨架)**
 
 ```python
 import pytest
@@ -1003,16 +999,9 @@ def _clean_db() -> None:
     with engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             conn.execute(table.delete())
-
-
-def _admin_headers() -> dict:
-    from app.domain.auth import register_user, authenticate_user
-    from app.core.security import create_access_token
-    from app.db.session import SessionLocal
-    db = SessionLocal()
-    try:
-        user = db.query(...)
 ```
+
+完整实现见 Step 3(`_admin_headers` + 5 个测试用例)。
 
 - [ ] **Step 3(app 内验证 admin 鉴权 + CRUD)**
 
@@ -1029,13 +1018,9 @@ def _admin_headers() -> dict:
         admin = User(email=ADMIN_EMAIL, username="cmstest", password_hash=hash_password("123456"), role="admin")
         db.add(admin)
         db.commit()
-    token = create_access_token(admin.id)
+    token = create_access_token({"sub": str(admin.id)})
     db.close()
     return {"Cookie": f"token={token}"}
-
-
-def _make():  # placeholder
-    pass
 
 
 def test_modules_requires_auth() -> None:
@@ -1045,15 +1030,29 @@ def test_modules_requires_auth() -> None:
 
 def test_create_and_move_module() -> None:
     headers = _admin_headers()
-    response = client.post("/api/v1/admin/cms/modules",
+    response = client.post(
+        "/api/v1/admin/cms/modules",
         json={"module_type": "banner", "title": "B1", "data_source_url": "/api/v1/web/home/banner", "sort_order": 1, "is_enabled": True},
-        headers=headers)
+        headers=headers,
+    )
     assert response.status_code == 201
     module_id = response.json()["id"]
 
-    moved = client.post(f"/api/v1/admin/cms/modules/{module_id}/move",
-        json={"direction": "down"}, headers=headers)
+    # 再插入一个模块，使 move down 有相邻节点可交换，避免命中"已在边界"的 400
+    client.post(
+        "/api/v1/admin/cms/modules",
+        json={"module_type": "product_recommend", "title": "P1", "data_source_url": "/api/v1/web/products?status=active", "sort_order": 2, "is_enabled": True},
+        headers=headers,
+    )
+
+    moved = client.post(
+        f"/api/v1/admin/cms/modules/{module_id}/move",
+        json={"direction": "down"},
+        headers=headers,
+    )
     assert moved.status_code == 200
+    by_id = {m["id"]: m["sort_order"] for m in moved.json()}
+    assert by_id[module_id] == 2
 
 
 def test_create_product() -> None:
@@ -1081,7 +1080,7 @@ def test_create_announcement() -> None:
     assert response.status_code == 201
 ```
 
-注意:若 `create_access_token` 未从 `core.security` 暴露,改用 `backend/app/api/web/auth.py` 的登录路径:先 POST `/api/v1/web/auth/login`(email/password)拿 cookie,再携带 cookie 访问 admin 接口。以实际可编译为准,实现者需 Read `backend/app/core/security.py` 确认可用符号。
+注意:`_admin_headers` 中 token 需按 `create_access_token(data: dict)` 的实际签名签发,`get_current_user` 读取 `payload["sub"]` 并转 int,因此应为 `token = create_access_token({"sub": str(admin.id)})`,同时去掉 `_make` 占位符(仅作示例的声明常量,不保留)。以实际可编译为准,实现者需 Read `backend/app/core/security.py` 确认。
 
 - [ ] **Step 4: 运行测试**
 
