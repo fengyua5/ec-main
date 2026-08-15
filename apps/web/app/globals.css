@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ec-main 移动端 design token 体系（weee-ui 方法论三层架构） */
+@import "./design-tokens/tokens.css";
+@import "./design-tokens/semantic.css";
+@import "./design-tokens/support-classes.css";
+@import "./design-tokens/dark.css";
+
 @custom-variant dark (&:is(.dark *));
 
 * {

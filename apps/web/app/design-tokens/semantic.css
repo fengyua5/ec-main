@@ -1,17 +1,16 @@
-/**
+/*
  * ec-main design token — @theme inline 桥接
  *
- * tokens.css 中的 `@theme {}` 已将下列变量自动暴露为 Tailwind 工具类：
- *   --color-*        → bg-*/text-*/border-*（如 bg-primary-2、text-tabbar-fg-selected）
- *   --spacing-*      → p-*/m-*/w-*/gap-*（如 p-400、gap-200）
- *   --radius-*       → rounded-*（如 rounded-300）
- *   --leading-*      → leading-*（如 leading-125）
- *   --tracking-*     → tracking-*（如 tracking-wide）
- *   --font-weight-*  → font-*（如 font-medium、font-bold）
+ * tokens.css 中的 @theme 已将下列变量自动暴露为 Tailwind 工具类：
+ *   --color-*      → bg-* / border-*（如 bg-primary-2、text-tabbar-fg-selected）
+ *   --spacing-*    → p-* / m-* / gap-*（如 p-400、gap-200）
+ *   --radius-*     → rounded-*（如 rounded-300）
+ *   --leading-*    → leading-*（如 leading-125）
+ *   --tracking-*   → tracking-*（如 tracking-wide）
+ *   --font-weight-* → font-*（如 font-medium、font-bold）
  *
  * 此处仅补齐 Tailwind v4 的字号命名空间：v4 默认用 --text-*（text-xs 等），
- * 而 token 统一存于 --font-size-*，故做一层扁平桥接，使 `text-3xs`..`text-10xl`
- * 类名直接可用。
+ * 而 token 统一存于 --font-size-*，故做一层扁平桥接，使 text-3xs..text-10xl 类名直接可用。
  */
 @theme inline {
   --text-3xs: var(--font-size-3xs);
