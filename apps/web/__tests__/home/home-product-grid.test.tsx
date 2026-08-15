@@ -1,6 +1,6 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
-import { HomeProductGrid, formatPrice } from "@/app/(main)/components/home-product-grid";
+import { CmsProductGrid, formatPrice } from "@/app/(main)/cms-components/cms-product-grid";
 
 afterEach(cleanup);
 
@@ -11,15 +11,15 @@ describe("formatPrice", () => {
   });
 });
 
-describe("HomeProductGrid", () => {
+describe("CmsProductGrid", () => {
   it("renders nothing when empty", () => {
-    const { container } = render(<HomeProductGrid items={[]} />);
+    const { container } = render(<CmsProductGrid items={[]} />);
     expect(container.innerHTML).toBe("");
   });
 
   it("renders product titles and prices", () => {
     render(
-      <HomeProductGrid
+      <CmsProductGrid
         items={[
           { id: 1, title: "商品1", image_url: "", price: 9900 },
           { id: 2, title: "商品2", image_url: "", price: 12900 },

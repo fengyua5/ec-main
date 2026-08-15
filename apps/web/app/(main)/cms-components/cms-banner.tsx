@@ -2,7 +2,7 @@ import type { BannerItem } from "@ec/sdk";
 
 type Props = { items: BannerItem[] };
 
-export function HomeBanner({ items }: Props) {
+export function CmsBanner({ items }: Props) {
   if (items.length === 0) return null;
   return (
     <div className="overflow-hidden rounded-2xl">

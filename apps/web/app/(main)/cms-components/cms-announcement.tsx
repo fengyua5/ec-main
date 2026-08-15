@@ -2,7 +2,7 @@ import type { Announcement } from "@ec/sdk";
 
 type Props = { items: Announcement[] };
 
-export function HomeAnnouncement({ items }: Props) {
+export function CmsAnnouncement({ items }: Props) {
   if (items.length === 0) return null;
   return (
     <div className="space-y-2">

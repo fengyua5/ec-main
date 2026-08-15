@@ -1,7 +1,7 @@
 import { createApiClient, checkHealth } from "@ec/sdk";
 import { Button } from "@/components/ui/button";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 async function getHealthLabel() {
   try {

@@ -6,7 +6,7 @@ export function formatPrice(cents: number): string {
   return `¥${(cents / 100).toFixed(2)}`;
 }
 
-export function HomeProductGrid({ items }: Props) {
+export function CmsProductGrid({ items }: Props) {
   if (items.length === 0) return null;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
