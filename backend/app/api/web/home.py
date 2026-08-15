@@ -42,5 +42,13 @@ def list_products_public(
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> ProductPublicListResponse:
-    items, total = products_service.list_products(db, page=page, page_size=page_size, status_filter=status)
-    return ProductPublicListResponse(items=[ProductPublicResponse.model_validate(p) for p in items], total=total)
+    items, total = products_service.list_products(
+        db,
+        page=page,
+        page_size=page_size,
+        status_filter=status,
+    )
+    return ProductPublicListResponse(
+        items=[ProductPublicResponse.model_validate(p) for p in items],
+        total=total,
+    )

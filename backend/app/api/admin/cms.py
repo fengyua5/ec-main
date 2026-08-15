@@ -4,7 +4,6 @@ from app.db.deps import get_db
 from app.domain.auth.deps import get_current_user
 from app.domain.cms import modules as modules_service
 from app.domain.cms import products as products_service
-from app.domain.cms.modules import MODULE_TYPES
 from app.domain.cms.schemas import (
     AdminAnnouncementListResponse,
     AdminAnnouncementResponse,
@@ -20,7 +19,6 @@ from app.domain.cms.schemas import (
     ProductResponse,
 )
 from app.models.user import User
-from app.models.home_module import HomeModule
 from app.models.banner_item import BannerItem
 from app.models.announcement import Announcement
 
@@ -28,7 +26,7 @@ router = APIRouter(prefix="/cms")
 
 
 def _modules_for_move(db: Session):
-    return db.query(HomeModule).order_by(HomeModule.sort_order.asc()).all()
+    return modules_service.list_modules(db)
 
 
 # ---- 模块 ----
@@ -48,8 +46,6 @@ def create_module(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ) -> ModuleResponse:
-    if payload.module_type not in MODULE_TYPES:
-        modules_service.validate_module_type(payload.module_type)
     module = modules_service.create_module(
         db,
         module_type=payload.module_type,
@@ -113,8 +109,18 @@ def list_products(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ) -> ProductListResponse:
-    items, total = products_service.list_products(db, page=page, page_size=page_size, status_filter=status)
-    return ProductListResponse(items=[ProductResponse.model_validate(p) for p in items], total=total, page=page, page_size=page_size)
+    items, total = products_service.list_products(
+        db,
+        page=page,
+        page_size=page_size,
+        status_filter=status,
+    )
+    return ProductListResponse(
+        items=[ProductResponse.model_validate(p) for p in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.post("/products", response_model=ProductResponse, status_code=201)
@@ -124,7 +130,12 @@ def create_product(
     _current_user: User = Depends(get_current_user),
 ) -> ProductResponse:
     product = products_service.create_product(
-        db, title=payload.title, image_url=payload.image_url, price=payload.price, status=payload.status, sort_order=payload.sort_order
+        db,
+        title=payload.title,
+        image_url=payload.image_url,
+        price=payload.price,
+        status=payload.status,
+        sort_order=payload.sort_order,
     )
     return ProductResponse.model_validate(product)
 
@@ -137,7 +148,13 @@ def update_product(
     _current_user: User = Depends(get_current_user),
 ) -> ProductResponse:
     product = products_service.update_product(
-        db, product_id, title=payload.title, image_url=payload.image_url, price=payload.price, status=payload.status, sort_order=payload.sort_order
+        db,
+        product_id,
+        title=payload.title,
+        image_url=payload.image_url,
+        price=payload.price,
+        status=payload.status,
+        sort_order=payload.sort_order,
     )
     return ProductResponse.model_validate(product)
 
@@ -170,7 +187,12 @@ def create_banner(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ) -> AdminBannerItemResponse:
-    item = BannerItem(image_url=payload.image_url, link_url=payload.link_url, sort_order=payload.sort_order, is_enabled=payload.is_enabled)
+    item = BannerItem(
+        image_url=payload.image_url,
+        link_url=payload.link_url,
+        sort_order=payload.sort_order,
+        is_enabled=payload.is_enabled,
+    )
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -186,7 +208,7 @@ def update_banner(
 ) -> AdminBannerItemResponse:
     item = db.query(BannerItem).filter(BannerItem.id == banner_id).first()
     if item is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner 不存在")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner不存在")
     item.image_url = payload.image_url
     item.link_url = payload.link_url
     item.sort_order = payload.sort_order
@@ -204,7 +226,7 @@ def delete_banner(
 ) -> None:
     item = db.query(BannerItem).filter(BannerItem.id == banner_id).first()
     if item is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner 不存在")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner不存在")
     db.delete(item)
     db.commit()
 
@@ -217,7 +239,9 @@ def list_announcements(
     _current_user: User = Depends(get_current_user),
 ) -> AdminAnnouncementListResponse:
     items = db.query(Announcement).order_by(Announcement.created_at.desc()).all()
-    return AdminAnnouncementListResponse(items=[AdminAnnouncementResponse.model_validate(a) for a in items])
+    return AdminAnnouncementListResponse(
+        items=[AdminAnnouncementResponse.model_validate(a) for a in items],
+    )
 
 
 @router.post("/announcements", response_model=AdminAnnouncementResponse, status_code=201)
