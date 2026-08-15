@@ -6,6 +6,7 @@
 @import "./design-tokens/tokens.css";
 @import "./design-tokens/semantic.css";
 @import "./design-tokens/support-classes.css";
+@import "./design-tokens/enki.css";
 @import "./design-tokens/dark.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -16,7 +17,7 @@
 
 body {
   margin: 0;
-  font-family: Arial, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family-cjk-main);
 }
 
 @theme inline {
