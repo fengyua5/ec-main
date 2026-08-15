@@ -24,7 +24,7 @@ export function BottomTabBar() {
             className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-xs text-tabbar-fg-default"
           >
             {isActive && (
-              <span className="absolute -top-0 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-tabbar-fg-selected" />
+              <span className="absolute -top-0 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full" />
             )}
             <Icon className={`size-5 ${isActive ? "text-tabbar-fg-selected" : ""}`} />
             <span className={isActive ? "font-medium text-tabbar-fg-selected" : ""}>{label}</span>

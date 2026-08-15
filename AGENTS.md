@@ -10,3 +10,7 @@
 
 - /fe-dev 前端开发任务 · /fe-bugfix 前端修 bug
 - /be-dev 后端开发任务 · /be-bugfix 后端修 bug
+
+## 提交纪律
+
+除非用户明确要求，否则不要自动创建 git commit。实现、修复、文档同步等所有改动都只暂存(stage)，等用户确认后再提交。
