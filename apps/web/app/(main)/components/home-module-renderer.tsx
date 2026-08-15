@@ -1,4 +1,4 @@
-import { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
+import type { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
 import { HomeBanner } from "./home-banner";
 import { HomeProductGrid } from "./home-product-grid";
 import { HomeAnnouncement } from "./home-announcement";

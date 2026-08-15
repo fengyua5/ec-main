@@ -6,7 +6,7 @@ import {
   getPublicProducts,
   type HomeModule,
 } from "@ec/sdk";
-import { HomeModuleRenderer, ModulePayloads } from "./components/home-module-renderer";
+import { HomeModuleRenderer, type ModulePayloads } from "./components/home-module-renderer";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
