@@ -1,8 +1,9 @@
 import type { ApiClient } from "./client";
+import type { ModuleType } from "./home";
 
 export type CmsModule = {
   id: number;
-  module_type: string;
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;
@@ -12,7 +13,7 @@ export type CmsModule = {
 };
 
 export type ModuleInput = {
-  module_type: string;
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;

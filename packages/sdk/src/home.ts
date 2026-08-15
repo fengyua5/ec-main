@@ -1,8 +1,10 @@
 import type { ApiClient } from "./client";
 
+export type ModuleType = "banner" | "product_recommend" | "announcement";
+
 export type HomeModule = {
   id: number;
-  module_type: "banner" | "product_recommend" | "announcement";
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;

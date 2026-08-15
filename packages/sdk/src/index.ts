@@ -27,6 +27,7 @@ export {
 export type {
   HomeModule,
   HomeModulesResponse,
+  ModuleType,
   BannerItem,
   BannerListResponse,
   Announcement,

@@ -18,6 +18,10 @@ export function createApiClient(options: { baseUrl: string }): ApiClient {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
+      if (response.status === 204) {
+        return undefined as T;
+      }
+
       return response.json() as Promise<T>;
     }
   };
