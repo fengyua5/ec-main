@@ -1108,9 +1108,11 @@ git commit -m "test: 首页公开接口 + CMS admin CRUD 测试"
 ```typescript
 import type { ApiClient } from "./client";
 
+export type ModuleType = "banner" | "product_recommend" | "announcement";
+
 export type HomeModule = {
   id: number;
-  module_type: "banner" | "product_recommend" | "announcement";
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;
@@ -1186,10 +1188,11 @@ export function getPublicProducts(
 
 ```typescript
 import type { ApiClient } from "./client";
+import type { ModuleType } from "./home";
 
 export type CmsModule = {
   id: number;
-  module_type: string;
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;
@@ -1199,7 +1202,7 @@ export type CmsModule = {
 };
 
 export type ModuleInput = {
-  module_type: string;
+  module_type: ModuleType;
   title: string;
   data_source_url: string;
   sort_order: number;
@@ -1420,6 +1423,7 @@ export {
   getPublicProducts,
 } from "./home";
 export type {
+  ModuleType,
   HomeModule,
   HomeModulesResponse,
   BannerItem,
@@ -1467,6 +1471,16 @@ export type {
 
 Run: `cd packages/sdk && npx tsc --noEmit`
 Expected: 无错误
+
+- [ ] **Step 4b: 修复 `client.request` 对 204 的短路**
+
+CMS 删除接口返回 `204 No Content`,而 `client.request`(packages/sdk/src/client.ts)现在无条件调用 `response.json()`,204 无 body 会抛 `SyntaxError`,导致 `deleteCms*`(及历史 `deleteFAQDocument`)不可用。在 `request` 中、`response.json()` 之前加:
+
+```typescript
+  if (response.status === 204) {
+    return undefined as T;
+  }
+```
 
 - [ ] **Step 5: 提交**
 
