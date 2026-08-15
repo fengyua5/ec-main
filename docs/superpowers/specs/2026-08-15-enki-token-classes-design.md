@@ -93,6 +93,22 @@ apps/web/app/globals.css      # 修改：引入 enki.css、切换全站字体栈
 
 > 对齐 CDN 产物的 `--font-weight-*` 命名后缀。
 
+### 4.4 字距单位修正（--font-tracking-*）
+
+现有 `--font-tracking-*` 使用 `em` 单位（`--font-tracking-widest: 0.6em`），CDN 产物使用 `px`（`0.60px`）。enki 组合类均引用 `--font-tracking-widest`，为像素级对齐，将基础变量改为 CDN 的 px 值：
+
+```css
+--font-tracking-tightest: -0.60px;
+--font-tracking-tighter:  -0.30px;
+--font-tracking-tight:    -0.20px;
+--font-tracking-base:     0px;
+--font-tracking-wide:     0.20px;
+--font-tracking-wider:    0.30px;
+--font-tracking-widest:   0.60px;
+```
+
+> 这是对现有变量的**原位替换**（非新增别名），与真实 enki 行为一致（letter-spacing 固定 px，不随字号放大）。注意：`semantic.css` 不映射 tracking，页面 `tracking-*` 工具类来自 Tailwind 内置的 `--tracking-*` 命名空间，与 `--font-tracking-*` 变量相互独立，故对本体系内引用（enki 组合类 + 现有无前缀字体类删除前的取值）无跨影响。
+
 ### 4.4 elevation 基础尺寸（22 个）
 
 ```css
