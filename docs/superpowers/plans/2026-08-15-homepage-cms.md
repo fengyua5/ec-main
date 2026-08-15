@@ -1722,7 +1722,7 @@ git commit -m "feat(web): 首页按 CMS 配置渲染"
 - Create: `apps/web/__tests__/home/home-module-renderer.test.tsx`
 - Create: `apps/web/__tests__/home/home-product-grid.test.tsx`
 
-- [ ] **Step 1: 创建 `home-module-renderer.test.tsx`**
+- [x] **Step 1: 创建 `home-module-renderer.test.tsx`**
 
 ```tsx
 import { render, screen, cleanup } from "@testing-library/react";
@@ -1788,7 +1788,7 @@ describe("HomeModuleRenderer", () => {
 });
 ```
 
-- [ ] **Step 2: 创建 `home-product-grid.test.tsx`**
+- [x] **Step 2: 创建 `home-product-grid.test.tsx`**
 
 ```tsx
 import { render, screen, cleanup } from "@testing-library/react";
@@ -1819,12 +1819,12 @@ describe("HomeProductGrid", () => {
 });
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cd apps/web && npx vitest run __tests__/home/`
 Expected: 全部 PASS
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add apps/web/__tests__/home/
@@ -1832,6 +1832,9 @@ git commit -m "test(web): 首页模块渲染测试"
 ```
 
 ---
+
+
+已实现与验证:`70e29af` 后提交 `__tests__/home/` 两文件(vitest 7/7 PASS、`npm run check` 零错误,评审 APPROVED)。相对计划的改进:无必要 `vi.mock`、`import type` 卫生、`module_type: "unknown"` 用 `as unknown as HomeModule` 覆盖 default 分支。
 
 ### Task 8: admin CMS 管理页 + 导航
 
