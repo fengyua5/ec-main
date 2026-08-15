@@ -202,6 +202,100 @@ class ProductPublicResponse(BaseModel):
 class ProductPublicListResponse(BaseModel):
     items: list[ProductPublicResponse]
     total: int
+
+
+# ---- 管理端(admin CMS)----
+
+class ModuleInput(BaseModel):
+    module_type: str
+    title: str = ""
+    data_source_url: str = ""
+    sort_order: int = 0
+    is_enabled: bool = True
+
+
+class ModuleResponse(BaseModel):
+    id: int
+    module_type: str
+    title: str
+    data_source_url: str
+    sort_order: int
+    is_enabled: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class MoveModuleRequest(BaseModel):
+    direction: str
+
+
+class ProductInput(BaseModel):
+    title: str
+    image_url: str = ""
+    price: int = 0
+    status: str = "active"
+    sort_order: int = 0
+
+
+class ProductResponse(BaseModel):
+    id: int
+    title: str
+    image_url: str
+    price: int
+    status: str
+    sort_order: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ProductListResponse(BaseModel):
+    items: list[ProductResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+class BannerItemInput(BaseModel):
+    image_url: str
+    link_url: str = ""
+    sort_order: int = 0
+    is_enabled: bool = True
+
+
+class AdminBannerItemResponse(BaseModel):
+    id: int
+    image_url: str
+    link_url: str
+    sort_order: int
+    is_enabled: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AdminBannerListResponse(BaseModel):
+    items: list[AdminBannerItemResponse]
+
+
+class AnnouncementInput(BaseModel):
+    content: str
+    is_enabled: bool = True
+
+
+class AdminAnnouncementResponse(BaseModel):
+    id: int
+    content: str
+    is_enabled: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AdminAnnouncementListResponse(BaseModel):
+    items: list[AdminAnnouncementResponse]
 ```
 
 - [ ] **Step 2: 创建 `home.py`(web 公开读取)**
@@ -524,113 +618,31 @@ def list_products_public(
 - [ ] **Step 2: 创建 `api/admin/cms.py`**
 
 ```python
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.domain.auth.deps import get_current_user
 from app.domain.cms import modules as modules_service
 from app.domain.cms import products as products_service
 from app.domain.cms.modules import MODULE_TYPES
+from app.domain.cms.schemas import (
+    AdminAnnouncementListResponse,
+    AdminAnnouncementResponse,
+    AdminBannerItemResponse,
+    AdminBannerListResponse,
+    AnnouncementInput,
+    BannerItemInput,
+    ModuleInput,
+    ModuleResponse,
+    MoveModuleRequest,
+    ProductInput,
+    ProductListResponse,
+    ProductResponse,
+)
 from app.models.user import User
-from datetime import datetime
 from app.models.home_module import HomeModule
 from app.models.banner_item import BannerItem
 from app.models.announcement import Announcement
-from app.models.product import Product
-
-
-class ModuleInput(BaseModel):
-    module_type: str
-    title: str = ""
-    data_source_url: str = ""
-    sort_order: int = 0
-    is_enabled: bool = True
-
-
-class ModuleResponse(BaseModel):
-    id: int
-    module_type: str
-    title: str
-    data_source_url: str
-    sort_order: int
-    is_enabled: bool
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class MoveModuleRequest(BaseModel):
-    direction: str
-
-
-class ProductInput(BaseModel):
-    title: str
-    image_url: str = ""
-    price: int = 0
-    status: str = "active"
-    sort_order: int = 0
-
-
-class ProductResponse(BaseModel):
-    id: int
-    title: str
-    image_url: str
-    price: int
-    status: str
-    sort_order: int
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class ProductListResponse(BaseModel):
-    items: list[ProductResponse]
-    total: int
-    page: int
-    page_size: int
-
-
-class BannerItemInput(BaseModel):
-    image_url: str
-    link_url: str = ""
-    sort_order: int = 0
-    is_enabled: bool = True
-
-
-class BannerItemResponse(BaseModel):
-    id: int
-    image_url: str
-    link_url: str
-    sort_order: int
-    is_enabled: bool
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class BannerListResponse(BaseModel):
-    items: list[BannerItemResponse]
-
-
-class AnnouncementInput(BaseModel):
-    content: str
-    is_enabled: bool = True
-
-
-class AnnouncementResponse(BaseModel):
-    id: int
-    content: str
-    is_enabled: bool
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class AnnouncementListResponse(BaseModel):
-    items: list[AnnouncementResponse]
-
 
 router = APIRouter(prefix="/cms")
 
@@ -763,38 +775,37 @@ def delete_product(
 
 # ---- banner ----
 
-@router.get("/banners", response_model=BannerListResponse)
+@router.get("/banners", response_model=AdminBannerListResponse)
 def list_banners(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> BannerListResponse:
+) -> AdminBannerListResponse:
     items = db.query(BannerItem).order_by(BannerItem.sort_order.asc()).all()
-    return BannerListResponse(items=[BannerItemResponse.model_validate(b) for b in items])
+    return AdminBannerListResponse(items=[AdminBannerItemResponse.model_validate(b) for b in items])
 
 
-@router.post("/banners", response_model=BannerItemResponse, status_code=201)
+@router.post("/banners", response_model=AdminBannerItemResponse, status_code=201)
 def create_banner(
     payload: BannerItemInput,
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> BannerItemResponse:
+) -> AdminBannerItemResponse:
     item = BannerItem(image_url=payload.image_url, link_url=payload.link_url, sort_order=payload.sort_order, is_enabled=payload.is_enabled)
     db.add(item)
     db.commit()
     db.refresh(item)
-    return BannerItemResponse.model_validate(item)
+    return AdminBannerItemResponse.model_validate(item)
 
 
-@router.patch("/banners/{banner_id}", response_model=BannerItemResponse)
+@router.patch("/banners/{banner_id}", response_model=AdminBannerItemResponse)
 def update_banner(
     banner_id: int,
     payload: BannerItemInput,
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> BannerItemResponse:
+) -> AdminBannerItemResponse:
     item = db.query(BannerItem).filter(BannerItem.id == banner_id).first()
     if item is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner 不存在")
     item.image_url = payload.image_url
     item.link_url = payload.link_url
@@ -802,7 +813,7 @@ def update_banner(
     item.is_enabled = payload.is_enabled
     db.commit()
     db.refresh(item)
-    return BannerItemResponse.model_validate(item)
+    return AdminBannerItemResponse.model_validate(item)
 
 
 @router.delete("/banners/{banner_id}", status_code=204)
@@ -813,7 +824,6 @@ def delete_banner(
 ) -> None:
     item = db.query(BannerItem).filter(BannerItem.id == banner_id).first()
     if item is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner 不存在")
     db.delete(item)
     db.commit()
@@ -821,44 +831,43 @@ def delete_banner(
 
 # ---- 公告 ----
 
-@router.get("/announcements", response_model=AnnouncementListResponse)
+@router.get("/announcements", response_model=AdminAnnouncementListResponse)
 def list_announcements(
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> AnnouncementListResponse:
+) -> AdminAnnouncementListResponse:
     items = db.query(Announcement).order_by(Announcement.created_at.desc()).all()
-    return AnnouncementListResponse(items=[AnnouncementResponse.model_validate(a) for a in items])
+    return AdminAnnouncementListResponse(items=[AdminAnnouncementResponse.model_validate(a) for a in items])
 
 
-@router.post("/announcements", response_model=AnnouncementResponse, status_code=201)
+@router.post("/announcements", response_model=AdminAnnouncementResponse, status_code=201)
 def create_announcement(
     payload: AnnouncementInput,
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> AnnouncementResponse:
+) -> AdminAnnouncementResponse:
     item = Announcement(content=payload.content, is_enabled=payload.is_enabled)
     db.add(item)
     db.commit()
     db.refresh(item)
-    return AnnouncementResponse.model_validate(item)
+    return AdminAnnouncementResponse.model_validate(item)
 
 
-@router.patch("/announcements/{announcement_id}", response_model=AnnouncementResponse)
+@router.patch("/announcements/{announcement_id}", response_model=AdminAnnouncementResponse)
 def update_announcement(
     announcement_id: int,
     payload: AnnouncementInput,
     db: Session = Depends(get_db),
     _current_user: User = Depends(get_current_user),
-) -> AnnouncementResponse:
+) -> AdminAnnouncementResponse:
     item = db.query(Announcement).filter(Announcement.id == announcement_id).first()
     if item is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="公告不存在")
     item.content = payload.content
     item.is_enabled = payload.is_enabled
     db.commit()
     db.refresh(item)
-    return AnnouncementResponse.model_validate(item)
+    return AdminAnnouncementResponse.model_validate(item)
 
 
 @router.delete("/announcements/{announcement_id}", status_code=204)
@@ -869,7 +878,6 @@ def delete_announcement(
 ) -> None:
     item = db.query(Announcement).filter(Announcement.id == announcement_id).first()
     if item is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="公告不存在")
     db.delete(item)
     db.commit()
@@ -1621,12 +1629,23 @@ export function HomeModuleRenderer({ modules, data }: Props) {
 - [ ] **Step 5: 重写 `page.tsx`**
 
 ```tsx
-import { createApiClient, getHomeModules, getHomeBanner, getHomeAnnouncements, getPublicProducts } from "@ec/sdk";
+import {
+  createApiClient,
+  getHomeModules,
+  getHomeBanner,
+  getHomeAnnouncements,
+  getPublicProducts,
+  type HomeModule,
+} from "@ec/sdk";
 import { HomeModuleRenderer, ModulePayloads } from "./components/home-module-renderer";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-async function loadHomeData(): Promise<{ modules: ModulePayloads | null }> {
+type HomeData =
+  | { modules: HomeModule[]; data: ModulePayloads }
+  | { modules: null; data: null };
+
+async function loadHomeData(): Promise<HomeData> {
   try {
     const client = createApiClient({ baseUrl: apiBaseUrl });
     const [moduleRes, bannerRes, annoRes, productsRes] = await Promise.all([
@@ -1636,19 +1655,20 @@ async function loadHomeData(): Promise<{ modules: ModulePayloads | null }> {
       getPublicProducts(client, { status: "active" }),
     ]);
     return {
-      modules: {
+      modules: moduleRes.modules,
+      data: {
         banner: bannerRes.items,
         product_recommend: productsRes.items,
         announcement: annoRes.items,
       },
     };
   } catch {
-    return { modules: null };
+    return { modules: null, data: null };
   }
 }
 
 export default async function HomePage() {
-  const { modules } = await loadHomeData();
+  const { modules, data } = await loadHomeData();
 
   return (
     <div className="min-h-screen bg-surface-200-bg px-6 py-10 text-surface-100-fg-default">
@@ -1660,8 +1680,8 @@ export default async function HomePage() {
           <h1 className="enki-heading-3xl">买家端商城</h1>
         </section>
 
-        {modules ? (
-          <HomeModuleRenderer modules={await (await getHomeModules(createApiClient({ baseUrl: apiBaseUrl }))).modules} data={modules} />
+        {modules && data ? (
+          <HomeModuleRenderer modules={modules} data={data} />
         ) : (
           <p className="enki-body-base text-surface-100-fg-minor">
             首页模块加载失败，请先到 Admin 后台配置首页内容。
