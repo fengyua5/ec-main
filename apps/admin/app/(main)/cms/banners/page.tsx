@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const client = createApiClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "",
 });
 
-const emptyForm: BannerInput = { image_url: "", link_url: "", sort_order: 0, is_enabled: true };
+const emptyForm: BannerInput = { image_url: "", description: "", link_url: "", sort_order: 0, is_enabled: true };
 
 export default function CmsBannersPage() {
   const [items, setItems] = useState<CmsBanner[]>([]);
@@ -70,7 +70,7 @@ export default function CmsBannersPage() {
 
   function handleEdit(item: CmsBanner) {
     setEditingId(item.id);
-    setForm({ image_url: item.image_url, link_url: item.link_url, sort_order: item.sort_order, is_enabled: item.is_enabled });
+    setForm({ image_url: item.image_url, description: item.description, link_url: item.link_url, sort_order: item.sort_order, is_enabled: item.is_enabled });
   }
 
   return (
@@ -83,6 +83,10 @@ export default function CmsBannersPage() {
           <div className="min-w-64 flex-1">
             <label className="mb-1 block text-xs text-muted-foreground">图片 URL</label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+          </div>
+          <div className="min-w-48 flex-1">
+            <label className="mb-1 block text-xs text-muted-foreground">描述</label>
+            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Banner 描述" />
           </div>
           <div className="min-w-48 flex-1">
             <label className="mb-1 block text-xs text-muted-foreground">跳转链接</label>
@@ -116,8 +120,11 @@ export default function CmsBannersPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.image_url} alt={item.link_url} className="h-32 w-full object-cover" />
               <div className="flex items-center justify-between p-3">
-                <span className="truncate text-xs text-muted-foreground">{item.link_url || "无链接"}</span>
-                <div className="flex gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{item.description || "无描述"}</p>
+                  <span className="block truncate text-xs text-muted-foreground">{item.link_url || "无链接"}</span>
+                </div>
+                <div className="flex gap-2 ml-2">
                   <button onClick={() => handleEdit(item)} className="text-blue-600 hover:underline" aria-label="编辑">
                     <Pencil className="size-4" />
                   </button>

@@ -5,7 +5,9 @@ export type CmsModule = {
   id: number;
   module_type: ModuleType;
   title: string;
+  description: string;
   data_source_url: string;
+  is_static: boolean;
   sort_order: number;
   is_enabled: boolean;
   created_at: string;
@@ -15,7 +17,9 @@ export type CmsModule = {
 export type ModuleInput = {
   module_type: ModuleType;
   title: string;
+  description: string;
   data_source_url: string;
+  is_static: boolean;
   sort_order: number;
   is_enabled: boolean;
 };
@@ -48,6 +52,7 @@ export type CmsProductListResponse = {
 export type CmsBanner = {
   id: number;
   image_url: string;
+  description: string;
   link_url: string;
   sort_order: number;
   is_enabled: boolean;
@@ -56,6 +61,7 @@ export type CmsBanner = {
 
 export type BannerInput = {
   image_url: string;
+  description: string;
   link_url: string;
   sort_order: number;
   is_enabled: boolean;

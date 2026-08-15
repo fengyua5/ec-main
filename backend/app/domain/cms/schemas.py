@@ -6,7 +6,9 @@ class HomeModuleResponse(BaseModel):
     id: int
     module_type: str
     title: str
+    description: str = ""
     data_source_url: str
+    is_static: bool = False
     sort_order: int
 
     model_config = {"from_attributes": True}
@@ -19,6 +21,7 @@ class HomeModulesResponse(BaseModel):
 class BannerItemResponse(BaseModel):
     id: int
     image_url: str
+    description: str = ""
     link_url: str
 
     model_config = {"from_attributes": True}
@@ -58,7 +61,9 @@ class ProductPublicListResponse(BaseModel):
 class ModuleInput(BaseModel):
     module_type: str
     title: str = ""
+    description: str = ""
     data_source_url: str = ""
+    is_static: bool = False
     sort_order: int = 0
     is_enabled: bool = True
 
@@ -67,7 +72,9 @@ class ModuleResponse(BaseModel):
     id: int
     module_type: str
     title: str
+    description: str
     data_source_url: str
+    is_static: bool
     sort_order: int
     is_enabled: bool
     created_at: datetime
@@ -109,6 +116,7 @@ class ProductListResponse(BaseModel):
 
 class BannerItemInput(BaseModel):
     image_url: str
+    description: str = ""
     link_url: str = ""
     sort_order: int = 0
     is_enabled: bool = True
@@ -117,6 +125,7 @@ class BannerItemInput(BaseModel):
 class AdminBannerItemResponse(BaseModel):
     id: int
     image_url: str
+    description: str
     link_url: str
     sort_order: int
     is_enabled: bool

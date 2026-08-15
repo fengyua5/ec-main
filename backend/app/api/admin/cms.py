@@ -50,7 +50,9 @@ def create_module(
         db,
         module_type=payload.module_type,
         title=payload.title,
+        description=payload.description,
         data_source_url=payload.data_source_url,
+        is_static=payload.is_static,
         sort_order=payload.sort_order,
         is_enabled=payload.is_enabled,
     )
@@ -69,7 +71,9 @@ def update_module(
         module_id,
         module_type=payload.module_type,
         title=payload.title,
+        description=payload.description,
         data_source_url=payload.data_source_url,
+        is_static=payload.is_static,
         sort_order=payload.sort_order,
         is_enabled=payload.is_enabled,
     )
@@ -189,6 +193,7 @@ def create_banner(
 ) -> AdminBannerItemResponse:
     item = BannerItem(
         image_url=payload.image_url,
+        description=payload.description,
         link_url=payload.link_url,
         sort_order=payload.sort_order,
         is_enabled=payload.is_enabled,
@@ -210,6 +215,7 @@ def update_banner(
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banner不存在")
     item.image_url = payload.image_url
+    item.description = payload.description
     item.link_url = payload.link_url
     item.sort_order = payload.sort_order
     item.is_enabled = payload.is_enabled

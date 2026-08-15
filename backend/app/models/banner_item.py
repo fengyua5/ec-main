@@ -9,6 +9,7 @@ class BannerItem(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     link_url: Mapped[str] = mapped_column(String(500), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     is_enabled: Mapped[bool] = mapped_column(Integer, nullable=False, server_default="1")

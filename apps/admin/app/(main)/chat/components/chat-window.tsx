@@ -8,7 +8,7 @@ import { Loader2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const client = createApiClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "",
 });
 
 type ChatWindowProps = {

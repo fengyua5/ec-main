@@ -36,6 +36,31 @@ def test_modules_requires_auth() -> None:
     assert response.status_code == 401
 
 
+def test_create_and_update_module_description() -> None:
+    headers = _admin_headers()
+    response = client.post(
+        "/api/v1/admin/cms/modules",
+        json={"module_type": "banner", "title": "B1", "description": "原始描述", "data_source_url": "/api/v1/web/home/banner", "sort_order": 1, "is_enabled": True},
+        headers=headers,
+    )
+    assert response.status_code == 201
+    module_id = response.json()["id"]
+    assert response.json()["description"] == "原始描述"
+
+    updated = client.patch(
+        f"/api/v1/admin/cms/modules/{module_id}",
+        json={"module_type": "banner", "title": "B1", "description": "修改后的描述", "data_source_url": "/api/v1/web/home/banner", "sort_order": 1, "is_enabled": True},
+        headers=headers,
+    )
+    assert updated.status_code == 200
+    assert updated.json()["description"] == "修改后的描述"
+
+    listed = client.get("/api/v1/admin/cms/modules", headers=headers)
+    assert listed.status_code == 200
+    by_id = {m["id"]: m["description"] for m in listed.json()}
+    assert by_id[module_id] == "修改后的描述"
+
+
 def test_create_and_move_module() -> None:
     headers = _admin_headers()
     response = client.post(

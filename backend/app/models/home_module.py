@@ -10,7 +10,9 @@ class HomeModule(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     module_type: Mapped[str] = mapped_column(String(30), nullable=False)
     title: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    description: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     data_source_url: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    is_static: Mapped[bool] = mapped_column(Integer, nullable=False, server_default="0")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     is_enabled: Mapped[bool] = mapped_column(Integer, nullable=False, server_default="1")
     created_at: Mapped[datetime] = mapped_column(

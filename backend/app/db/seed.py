@@ -62,44 +62,75 @@ def seed_cms(db: Session) -> None:
 
     if db.query(HomeModule).count() > 0:
         logger.info("种子数据: home_modules 已有记录，跳过")
-        return
+    else:
+        db.add(HomeModule(
+            module_type="banner",
+            title="轮播 Banner",
+            description="首页顶部轮播宣传图",
+            data_source_url="/api/v1/web/home/banner",
+            sort_order=1,
+            is_enabled=True,
+        ))
+        db.add(HomeModule(
+            module_type="product_recommend",
+            title="推荐商品",
+            description="热门商品推荐展示",
+            data_source_url="/api/v1/web/home/products?status=active",
+            sort_order=2,
+            is_enabled=True,
+        ))
+        db.add(HomeModule(
+            module_type="announcement",
+            title="平台公告",
+            description="系统公告信息",
+            data_source_url="/api/v1/web/home/announcement",
+            sort_order=3,
+            is_enabled=True,
+        ))
+        db.add(HomeModule(
+            module_type="search_bar",
+            title="搜索栏",
+            description="商品搜索条",
+            data_source_url="",
+            is_static=True,
+            sort_order=0,
+            is_enabled=True,
+        ))
+        db.commit()
+        logger.info("种子数据: 已创建 3 个首页模块")
 
-    db.add(HomeModule(
-        module_type="banner",
-        title="轮播 Banner",
-        data_source_url="/api/v1/web/home/banner",
-        sort_order=1,
-        is_enabled=True,
-    ))
-    db.add(HomeModule(
-        module_type="product_recommend",
-        title="推荐商品",
-        data_source_url="/api/v1/web/products?status=active",
-        sort_order=2,
-        is_enabled=True,
-    ))
-    db.add(HomeModule(
-        module_type="announcement",
-        title="平台公告",
-        data_source_url="/api/v1/web/home/announcement",
-        sort_order=3,
-        is_enabled=True,
-    ))
-    db.add(BannerItem(
-        image_url="https://placehold.co/800x300?text=Banner+1",
-        link_url="https://example.com/1",
-        sort_order=1,
-        is_enabled=True,
-    ))
-    db.add(BannerItem(
-        image_url="https://placehold.co/800x300?text=Banner+2",
-        link_url="https://example.com/2",
-        sort_order=2,
-        is_enabled=True,
-    ))
-    for data in SEED_ANNOUNCEMENTS:
-        db.add(Announcement(**data))
-    for data in SEED_PRODUCTS:
-        db.add(Product(**data))
-    db.commit()
-    logger.info("种子数据: 已初始化首页模块")
+    if db.query(BannerItem).count() > 0:
+        logger.info("种子数据: banner_items 已有记录，跳过")
+    else:
+        db.add(BannerItem(
+            image_url="https://placehold.co/800x300?text=Banner+1",
+            description="首屏主推活动",
+            link_url="https://example.com/1",
+            sort_order=1,
+            is_enabled=True,
+        ))
+        db.add(BannerItem(
+            image_url="https://placehold.co/800x300?text=Banner+2",
+            description="限时特惠专场",
+            link_url="https://example.com/2",
+            sort_order=2,
+            is_enabled=True,
+        ))
+        db.commit()
+        logger.info("种子数据: 已创建 2 条 Banner")
+
+    if db.query(Announcement).count() > 0:
+        logger.info("种子数据: announcements 已有记录，跳过")
+    else:
+        for data in SEED_ANNOUNCEMENTS:
+            db.add(Announcement(**data))
+        db.commit()
+        logger.info("种子数据: 已创建 2 条公告")
+
+    if db.query(Product).count() > 0:
+        logger.info("种子数据: products 已有记录，跳过")
+    else:
+        for data in SEED_PRODUCTS:
+            db.add(Product(**data))
+        db.commit()
+        logger.info("种子数据: 已创建 3 个商品")

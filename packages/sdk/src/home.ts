@@ -1,12 +1,14 @@
 import type { ApiClient } from "./client";
 
-export type ModuleType = "banner" | "product_recommend" | "announcement";
+export type ModuleType = "banner" | "product_recommend" | "announcement" | "search_bar";
 
 export type HomeModule = {
   id: number;
   module_type: ModuleType;
   title: string;
+  description: string;
   data_source_url: string;
+  is_static: boolean;
   sort_order: number;
 };
 
@@ -17,6 +19,7 @@ export type HomeModulesResponse = {
 export type BannerItem = {
   id: number;
   image_url: string;
+  description: string;
   link_url: string;
 };
 

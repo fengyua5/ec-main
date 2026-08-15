@@ -17,7 +17,7 @@ from app.api.admin.cms import router as admin_cms_router
 from app.core.config import settings
 from app.models.user import Base
 from app.db.session import engine, SessionLocal
-from app.db.migrate import ensure_user_is_active_column
+from app.db.migrate import ensure_user_is_active_column, ensure_home_module_columns, ensure_banner_description_column
 from app.db.seed import seed_orders, seed_admin, seed_cms
 
 
@@ -25,6 +25,8 @@ from app.db.seed import seed_orders, seed_admin, seed_cms
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     Base.metadata.create_all(bind=engine)
     ensure_user_is_active_column(engine)
+    ensure_home_module_columns(engine)
+    ensure_banner_description_column(engine)
     db = SessionLocal()
     try:
         seed_admin(db)

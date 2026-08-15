@@ -2,6 +2,7 @@ import type { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
 import { HomeBanner } from "./home-banner";
 import { HomeProductGrid } from "./home-product-grid";
 import { HomeAnnouncement } from "./home-announcement";
+import { HomeSearchBar } from "./home-search-bar";
 
 export type ModulePayloads = {
   banner: BannerItem[];
@@ -26,6 +27,8 @@ export function HomeModuleRenderer({ modules, data }: Props) {
             return <HomeProductGrid key={key} items={data.product_recommend} />;
           case "announcement":
             return <HomeAnnouncement key={key} items={data.announcement} />;
+          case "search_bar":
+            return <HomeSearchBar key={key} />;
           default:
             return null;
         }

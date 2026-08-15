@@ -510,7 +510,7 @@ def seed_cms(db: Session) -> None:
         return
 
     db.add(HomeModule(module_type="banner", title="轮播 Banner", data_source_url="/api/v1/web/home/banner", sort_order=1, is_enabled=True))
-    db.add(HomeModule(module_type="product_recommend", title="推荐商品", data_source_url="/api/v1/web/products?status=active", sort_order=2, is_enabled=True))
+    db.add(HomeModule(module_type="product_recommend", title="推荐商品", data_source_url="/api/v1/web/home/products?status=active", sort_order=2, is_enabled=True))
     db.add(HomeModule(module_type="announcement", title="平台公告", data_source_url="/api/v1/web/home/announcement", sort_order=3, is_enabled=True))
     db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+1", link_url="https://example.com/1", sort_order=1, is_enabled=True))
     db.add(BannerItem(image_url="https://placehold.co/800x300?text=Banner+2", link_url="https://example.com/2", sort_order=2, is_enabled=True))
@@ -1887,7 +1887,7 @@ const MODULE_TYPE_LABELS: Record<string, string> = {
 
 const DEFAULT_URLS: Record<string, string> = {
   banner: "/api/v1/web/home/banner",
-  product_recommend: "/api/v1/web/products?status=active",
+  product_recommend: "/api/v1/web/home/products?status=active",
   announcement: "/api/v1/web/home/announcement",
 };
 

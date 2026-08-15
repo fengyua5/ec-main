@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.home_module import HomeModule
 
-MODULE_TYPES = ["banner", "product_recommend", "announcement"]
+MODULE_TYPES = ["banner", "product_recommend", "announcement", "search_bar"]
 
 
 def list_modules(db: Session) -> list[HomeModule]:
@@ -25,7 +25,9 @@ def create_module(
     db: Session,
     module_type: str,
     title: str,
+    description: str,
     data_source_url: str,
+    is_static: bool,
     sort_order: int,
     is_enabled: bool,
 ) -> HomeModule:
@@ -33,7 +35,9 @@ def create_module(
     module = HomeModule(
         module_type=module_type,
         title=title,
+        description=description,
         data_source_url=data_source_url,
+        is_static=is_static,
         sort_order=sort_order,
         is_enabled=is_enabled,
     )
@@ -48,7 +52,9 @@ def update_module(
     module_id: int,
     module_type: str,
     title: str,
+    description: str,
     data_source_url: str,
+    is_static: bool,
     sort_order: int,
     is_enabled: bool,
 ) -> HomeModule:
@@ -56,7 +62,9 @@ def update_module(
     module = get_module(db, module_id)
     module.module_type = module_type
     module.title = title
+    module.description = description
     module.data_source_url = data_source_url
+    module.is_static = is_static
     module.sort_order = sort_order
     module.is_enabled = is_enabled
     db.commit()

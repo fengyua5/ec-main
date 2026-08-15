@@ -13,7 +13,7 @@ import {
 } from "./order-constants";
 
 const client = createApiClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "",
 });
 
 const ALL_STATUSES: (OrderStatus | "all")[] = [
