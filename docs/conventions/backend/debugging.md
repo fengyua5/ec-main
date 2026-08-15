@@ -2,7 +2,7 @@
 
 ## 定位
 
-- 按分层排查:路由(`api/`)薄 → `domain/<域>/` 业务规则 → `models/` / repo。
+- 按分层排查:路由(`api/`)薄 → `domain/<域>/` 业务规则 → `models/` 数据定义。
 - 先用测试复现:在 `backend/tests/` 加复现用例(黑盒 API 或 domain 单测),确认红后再修。
 
 ## 最小改动

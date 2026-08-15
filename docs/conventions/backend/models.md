@@ -19,4 +19,4 @@ class User(Base):
 ## 其他
 
 - 新模型必须加入 `backend/app/models/__init__.py`(保证 `create_all` 元数据完整)。
-- 表结构变更遵循 `db/migrate.py` 的幂等 SQL 迁移方式,不使用 alembic。
+- 表结构变更遵循 `backend/app/db/migrate.py` 的幂等 SQL 迁移方式,不使用 alembic。

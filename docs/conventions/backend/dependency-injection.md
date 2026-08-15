@@ -7,10 +7,13 @@
   - 仅需"已登录"但不需要用户对象的参数,命名用 `_` 前缀(`_current_user`)。
 
 ```python
-@router.get("/{order_no}")
-def get_order(order_no: str, db: Session = Depends(get_db),
-              current_user: User = Depends(get_current_user)):
-    ...
+@router.get("/{order_no}", response_model=OrderResponse)
+def order_detail(
+    order_no: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return OrderResponse.model_validate(get_order(db, order_no))
 ```
 
   参考:`backend/app/db/deps.py`、`backend/app/domain/auth/deps.py`、`backend/app/api/admin/users.py`
