@@ -1845,7 +1845,7 @@ git commit -m "test(web): 首页模块渲染测试"
 - Create: `apps/admin/app/(main)/cms/announcements/page.tsx`
 - Create: `apps/admin/app/(main)/cms/products/page.tsx`
 
-- [ ] **Step 1: sidebar 增加导航**
+- [x] **Step 1: sidebar 增加导航**
 
 将 `apps/admin/app/components/sidebar.tsx` 的 navItems 中 `{ label: "商品管理", href: "/products" }`(若存在)改为:
 
@@ -1856,7 +1856,7 @@ git commit -m "test(web): 首页模块渲染测试"
 
 保持其他项不变。
 
-- [ ] **Step 2: 创建 `cms/modules/page.tsx`**
+- [x] **Step 2: 创建 `cms/modules/page.tsx`**
 
 ```tsx
 "use client";
@@ -2102,7 +2102,7 @@ export default function ModulesPage() {
 }
 ```
 
-- [ ] **Step 3: 创建 `cms/products/page.tsx`**
+- [x] **Step 3: 创建 `cms/products/page.tsx`**
 
 ```tsx
 "use client";
@@ -2322,7 +2322,7 @@ export default function CmsProductsPage() {
 }
 ```
 
-- [ ] **Step 4: 创建 `cms/banners/page.tsx`**(banner 列表 + 表单,image_url/link_url/sort_order/is_enabled)
+- [x] **Step 4: 创建 `cms/banners/page.tsx`**(banner 列表 + 表单,image_url/link_url/sort_order/is_enabled)
 
 ```tsx
 "use client";
@@ -2462,7 +2462,7 @@ export default function CmsBannersPage() {
 }
 ```
 
-- [ ] **Step 5: 创建 `cms/announcements/page.tsx`**(公告列表 + 表单)
+- [x] **Step 5: 创建 `cms/announcements/page.tsx`**(公告列表 + 表单)
 
 ```tsx
 "use client";
@@ -2595,12 +2595,12 @@ export default function CmsAnnouncementsPage() {
 }
 ```
 
-- [ ] **Step 6: 运行类型检查**
+- [x] **Step 6: 运行类型检查**
 
 Run: `cd apps/admin && npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add apps/admin/app/components/sidebar.tsx apps/admin/app/\(main\)/cms/
@@ -2608,6 +2608,9 @@ git commit -m "feat(admin): 首页 CMS 配置管理页"
 ```
 
 ---
+
+
+已实现与验证:提交 `d7dd5fc`(sidebar + 4 个 CMS 管理页)。适配:`module_type` select 赋值加 `as ModuleInput["module_type"]` 强转、select className 采用 users/orders 既有样式。`npx tsc --noEmit` 零错误,admin vitest 21/21 PASS,评审 APPROVED。
 
 ### Task 9: 集成验证
 
