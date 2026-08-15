@@ -8,7 +8,8 @@ const navItems = [
   { label: "FAQ 管理", href: "/faq" },
   { label: "客服消息", href: "/chat" },
   { label: "订单管理", href: "/orders" },
-  { label: "商品管理", href: "/products" },
+  { label: "首页配置", href: "/cms/modules" },
+  { label: "商品管理", href: "/cms/products" },
   { label: "用户管理", href: "/users" },
 ];
 
