@@ -1,0 +1,123 @@
+/**
+ * ec-main 移动端 design token — 暗色模式
+ * .dark 作用域覆盖 tokens.css 中的同名变量。
+ * 机制（参照 weee-ui color.dark.css）：root 色板保持不变，变化集中在 Layer2/3 映射反向：
+ *   - surface 阶梯反向：100 最暗 → 600 最亮
+ *   - 组件态（input 禁用/错误、btn 禁用等）换用更深/更浅档
+ *   - 状态色（critical/warning/pricing 等）文字与边框亮度对调
+ */
+.dark {
+  /* ── surface 阶梯反向：100 最暗 → 600 最亮 ── */
+  --color-surface-100-bg: var(--color-shade-cool-dark-7);
+  --color-surface-100-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-100-fg-minor: var(--color-shade-cool-light-7);
+  --color-surface-100-hairline: var(--color-shade-cool-base-7);
+  --color-surface-200-bg: var(--color-shade-cool-dark-6);
+  --color-surface-200-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-200-fg-minor: var(--color-shade-cool-light-1);
+  --color-surface-200-hairline: var(--color-shade-cool-base-7);
+  --color-surface-300-bg: var(--color-shade-cool-dark-5);
+  --color-surface-300-fg-default: var(--color-shade-cool-light-1);
+  --color-surface-300-fg-minor: var(--color-shade-cool-light-1);
+  --color-surface-300-hairline: var(--color-shade-cool-base-6);
+  --color-surface-400-bg: var(--color-shade-cool-light-2);
+  --color-surface-400-fg-default: var(--color-shade-cool-dark-5);
+  --color-surface-400-fg-minor: var(--color-shade-cool-base-5);
+  --color-surface-400-hairline: var(--color-shade-cool-light-6);
+  --color-surface-500-bg: var(--color-shade-cool-light-1);
+  --color-surface-500-fg-default: var(--color-shade-cool-dark-5);
+  --color-surface-500-fg-minor: var(--color-shade-cool-base-5);
+  --color-surface-500-hairline: var(--color-shade-cool-light-5);
+  --color-surface-600-bg: var(--color-reserved-true-white);
+  --color-surface-600-fg-default: var(--color-shade-cool-dark-5);
+  --color-surface-600-fg-minor: var(--color-shade-cool-base-5);
+  --color-surface-600-hairline: var(--color-shade-cool-light-4);
+
+  /* ── 按钮 ── */
+  --color-btn-tertiary-bg: var(--color-shade-cool-dark-5);
+  --color-btn-tertiary-hairline: var(--color-shade-cool-base-7);
+  --color-btn-confirmation-hairline: var(--color-root-jade-green-dark-1);
+  --color-btn-secondary-hairline: var(--color-root-energy-blue-dark-1);
+  --color-btn-disabled-bg: var(--color-shade-cool-dark-3);
+  --color-btn-disabled-fg-default: var(--color-shade-cool-base-4);
+  --color-btn-disabled-fg-minor: var(--color-shade-cool-base-6);
+  --color-btn-disabled-hairline: var(--color-shade-cool-base-5);
+
+  /* ── 输入框 ── */
+  --color-input-100-bg-default: var(--color-surface-200-bg);
+  --color-input-100-bg-active: var(--color-surface-300-bg);
+  --color-input-100-bg-disabled: var(--color-shade-neutral-base-7);
+  --color-input-100-bg-critical: var(--color-root-tomato-red-dark-7);
+  --color-input-100-fg-default: var(--color-surface-100-fg-default);
+  --color-input-100-fg-placeholder: var(--color-surface-100-fg-minor);
+  --color-input-100-fg-disabled: var(--color-shade-neutral-light-4);
+  --color-input-100-fg-critical: var(--color-root-tomato-red-light-3);
+  --color-input-100-hairline-default: var(--color-surface-100-hairline);
+  --color-input-100-hairline-active: var(--color-surface-100-fg-default);
+  --color-input-100-hairline-disabled: var(--color-shade-neutral-base-4);
+  --color-input-100-hairline-critical: var(--color-root-tomato-red-dark-4);
+  --color-input-100-icon-default: var(--color-surface-100-fg-minor);
+  --color-input-100-icon-active: var(--color-surface-100-fg-default);
+  --color-input-200-bg-default: var(--color-surface-200-bg);
+  --color-input-200-bg-active: var(--color-surface-100-bg);
+  --color-input-200-bg-disabled: var(--color-shade-neutral-base-7);
+  --color-input-200-bg-critical: var(--color-root-tomato-red-dark-7);
+  --color-input-200-fg-default: var(--color-surface-100-fg-default);
+  --color-input-200-fg-placeholder: var(--color-surface-100-fg-minor);
+  --color-input-200-fg-disabled: var(--color-shade-neutral-light-4);
+  --color-input-200-fg-critical: var(--color-root-tomato-red-light-3);
+  --color-input-200-hairline-default: var(--color-surface-200-hairline);
+  --color-input-200-hairline-active: var(--color-secondary-light-1);
+  --color-input-200-hairline-disabled: var(--color-shade-neutral-base-4);
+  --color-input-200-hairline-critical: var(--color-root-tomato-red-dark-4);
+  --color-input-200-icon-default: var(--color-surface-100-fg-minor);
+  --color-input-200-icon-active: var(--color-surface-100-fg-default);
+
+  /* ── 导航栏 ── */
+  --color-navbar-bg-default: var(--color-surface-100-bg);
+  --color-navbar-bg-highlight: var(--color-surface-100-bg);
+  --color-navbar-bg-selected: rgba(2, 127, 255, 0.12);
+  --color-navbar-bg-transluscent: rgba(6, 18, 29, 0.88);
+  --color-navbar-fg-default: var(--color-secondary-light-1);
+  --color-navbar-fg-highlight: var(--color-root-eggplant-purple-light-6);
+  --color-navbar-fg-selected: var(--color-secondary-base-1);
+  --color-navbar-hairline: var(--color-surface-100-hairline);
+  --color-navbar-divider: var(--color-surface-100-hairline);
+  --color-navbar-logo: var(--color-secondary-light-1);
+
+  /* ── 底部 Tab（暗色下用最暗面，选中色保持） ── */
+  --color-tabbar-bg: var(--color-surface-100-bg);
+  --color-tabbar-fg-default: var(--color-shade-cool-light-7);
+  --color-tabbar-fg-selected: var(--color-secondary-base-1);
+  --color-tabbar-hairline: var(--color-surface-100-hairline);
+
+  /* ── 状态色 ── */
+  --color-link-base-1: var(--color-root-energy-blue-light-5);
+  --color-success-hairline: var(--color-root-chive-green-base-4);
+  --color-success-txt: var(--color-tertiary-light-4);
+  --color-critical-bg: var(--color-root-tomato-red-base-3);
+  --color-critical-hairline: var(--color-root-tomato-red-light-6);
+  --color-critical-txt: var(--color-root-tomato-red-base-3);
+  --color-warning-hairline: var(--color-root-durian-yellow-dark-4);
+  --color-warning-txt: var(--color-root-durian-yellow-light-7);
+  --color-highlight-hairline: var(--color-root-eggplant-purple-base-6);
+  --color-highlight-txt: var(--color-root-eggplant-purple-base-1);
+  --color-pricing-txt: var(--color-root-tomato-red-light-7);
+
+  /* ── 促销卡：promotion-200/300 提亮，promotion-100 保持深色氛围 ── */
+  --color-promotion-100-bg-lighter: var(--color-root-dragonfruit-pink-base-1);
+  --color-promotion-100-bg-light: var(--color-root-dragonfruit-pink-base-4);
+  --color-promotion-100-bg-default: var(--color-root-dragonfruit-pink-dark-1);
+  --color-promotion-100-bg-dark: var(--color-root-dragonfruit-pink-dark-4);
+  --color-promotion-100-bg-darker: var(--color-root-dragonfruit-pink-dark-7);
+  --color-promotion-200-bg-lighter: var(--color-root-dragonfruit-pink-light-5);
+  --color-promotion-200-bg-light: var(--color-root-dragonfruit-pink-light-3);
+  --color-promotion-200-bg-default: var(--color-root-dragonfruit-pink-light-5);
+  --color-promotion-200-bg-dark: var(--color-root-dragonfruit-pink-light-6);
+  --color-promotion-200-bg-darker: var(--color-root-dragonfruit-pink-light-7);
+  --color-promotion-300-bg-lighter: var(--color-root-eggplant-purple-light-6);
+  --color-promotion-300-bg-light: var(--color-root-eggplant-purple-base-2);
+  --color-promotion-300-bg-default: var(--color-root-eggplant-purple-base-5);
+  --color-promotion-300-bg-dark: var(--color-root-eggplant-purple-base-6);
+  --color-promotion-300-bg-darker: var(--color-root-eggplant-purple-dark-4);
+}
