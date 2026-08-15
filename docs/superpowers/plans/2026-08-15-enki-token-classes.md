@@ -327,7 +327,7 @@ T=apps/web/app/design-tokens/tokens.css
 rg -c -- "--font-family-(cjk|number)-" $T          # 预期 5
 rg -c -- "--font-lineheight-" $T                    # 预期 6
 rg -c -- "--font-weight-400-regular|--font-weight-500-medium|--font-weight-700-bold" $T   # 预期 3
-rg -c -- "--size-elevation-" $T                     # 预期 32（blur 17 + distance 12 + spread 3）
+rg -c -- "--size-elevation-" $T                     # 预期 31（blur 16 + distance 12 + spread 3）
 rg -c -- "--style-elevation-|--style-filter-" $T    # 预期 13（elevation 9 + filter 4）
 rg -c -- "--font-size-" $T                          # 预期 13（3xs..10xl，用于核对中间变量引用存在）
 rg -c -- "--display-" $T                            # 预期 42（7 字号 × 6 中间变量）
