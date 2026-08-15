@@ -593,7 +593,6 @@
   --font-tracking-wide: 0.20px;
   --font-tracking-wider: 0.30px;
   --font-tracking-widest: 0.60px;
-}
   /* ────────────── 字体栈（对齐 weee 线上 enki 产物） ────────────── */
   --font-family-number-main: SF Pro Text,SF Pro,Microsoft YaHei,PingFang SC,Roboto,Helvetica Neue,Helvetica,Arial,Apple SD Gothic Neo,Malgun Gothic,BlinkMacSystemFont,-apple-system,Segoe UI,Ubuntu,sans-serif;
   --font-family-cjk-display: SF Pro Text,SF Pro,Microsoft YaHei,PingFang SC,Roboto,Helvetica Neue,Helvetica,Arial,Apple SD Gothic Neo,Malgun Gothic,BlinkMacSystemFont,-apple-system,Segoe UI,Ubuntu,sans-serif;
@@ -663,7 +662,9 @@
   --style-filter-lighten-1-pressed: brightness(108%) saturate(108%);
   --style-filter-darken-1-hover: brightness(95%) saturate(105%);
   --style-filter-darken-1-pressed: brightness(92%) saturate(108%);
+}
 
+:root {
   /* ────────────── enki 中间变量：display ────────────── */
   --display-sm-size: var(--font-size-lg);
   --display-sm-family: var(--font-family-cjk-display);
