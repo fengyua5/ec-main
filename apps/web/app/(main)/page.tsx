@@ -20,11 +20,11 @@ export default async function HomePage() {
     <div className="min-h-screen bg-surface-200-bg px-6 py-10 text-surface-100-fg-default">
       <section className="mx-auto flex max-w-5xl flex-col gap-8">
         <div className="space-y-3">
-          <p className="body-sm font-medium uppercase tracking-wide text-surface-100-fg-minor">
+          <p className="enki-body-sm font-medium uppercase tracking-wide text-surface-100-fg-minor">
             EC Main
           </p>
-          <h1 className="heading-3xl">买家端商城底座</h1>
-          <p className="body-base text-surface-100-fg-minor">
+          <h1 className="enki-heading-3xl">买家端商城底座</h1>
+          <p className="enki-body-base text-surface-100-fg-minor">
             这里是电商 MVP 的买家端入口，后续会承载首页、PDP、购物车、结算和订单体验。
           </p>
         </div>
