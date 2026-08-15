@@ -10,8 +10,8 @@
     letter-spacing: var(--display-sm-tracking);
     font-size: var(--display-sm-size);
     font-family: var(--display-sm-family);
-    line-height: var(--display-sm-lineheight);
     font-weight: var(--display-sm-weight);
+    line-height: var(--display-sm-lineheight);
   }
   .enki-display-sm-strong {
     letter-spacing: var(--display-sm-tracking);
@@ -24,8 +24,8 @@
     letter-spacing: var(--display-lg-tracking);
     font-size: var(--display-lg-size);
     font-family: var(--display-lg-family);
-    line-height: var(--display-lg-lineheight);
     font-weight: var(--display-lg-weight);
+    line-height: var(--display-lg-lineheight);
   }
   .enki-display-lg-strong {
     letter-spacing: var(--display-lg-tracking);
@@ -38,8 +38,8 @@
     letter-spacing: var(--display-xl-tracking);
     font-size: var(--display-xl-size);
     font-family: var(--display-xl-family);
-    line-height: var(--display-xl-lineheight);
     font-weight: var(--display-xl-weight);
+    line-height: var(--display-xl-lineheight);
   }
   .enki-display-xl-strong {
     letter-spacing: var(--display-xl-tracking);
@@ -52,8 +52,8 @@
     letter-spacing: var(--display-2xl-tracking);
     font-size: var(--display-2xl-size);
     font-family: var(--display-2xl-family);
-    line-height: var(--display-2xl-lineheight);
     font-weight: var(--display-2xl-weight);
+    line-height: var(--display-2xl-lineheight);
   }
   .enki-display-2xl-strong {
     letter-spacing: var(--display-2xl-tracking);
@@ -66,8 +66,8 @@
     letter-spacing: var(--display-3xl-tracking);
     font-size: var(--display-3xl-size);
     font-family: var(--display-3xl-family);
-    line-height: var(--display-3xl-lineheight);
     font-weight: var(--display-3xl-weight);
+    line-height: var(--display-3xl-lineheight);
   }
   .enki-display-3xl-strong {
     letter-spacing: var(--display-3xl-tracking);
@@ -80,8 +80,8 @@
     letter-spacing: var(--display-4xl-tracking);
     font-size: var(--display-4xl-size);
     font-family: var(--display-4xl-family);
-    line-height: var(--display-4xl-lineheight);
     font-weight: var(--display-4xl-weight);
+    line-height: var(--display-4xl-lineheight);
   }
   .enki-display-4xl-strong {
     letter-spacing: var(--display-4xl-tracking);
@@ -94,8 +94,8 @@
     letter-spacing: var(--display-5xl-tracking);
     font-size: var(--display-5xl-size);
     font-family: var(--display-5xl-family);
-    line-height: var(--display-5xl-lineheight);
     font-weight: var(--display-5xl-weight);
+    line-height: var(--display-5xl-lineheight);
   }
   .enki-display-5xl-strong {
     letter-spacing: var(--display-5xl-tracking);
@@ -110,8 +110,8 @@
     letter-spacing: var(--heading-sm-tracking);
     font-size: var(--heading-sm-size);
     font-family: var(--heading-sm-family);
-    line-height: var(--heading-sm-lineheight);
     font-weight: var(--heading-sm-weight);
+    line-height: var(--heading-sm-lineheight);
   }
   .enki-heading-sm-strong {
     letter-spacing: var(--heading-sm-tracking);
@@ -124,8 +124,8 @@
     letter-spacing: var(--heading-lg-tracking);
     font-size: var(--heading-lg-size);
     font-family: var(--heading-lg-family);
-    line-height: var(--heading-lg-lineheight);
     font-weight: var(--heading-lg-weight);
+    line-height: var(--heading-lg-lineheight);
   }
   .enki-heading-lg-strong {
     letter-spacing: var(--heading-lg-tracking);
@@ -138,8 +138,8 @@
     letter-spacing: var(--heading-xl-tracking);
     font-size: var(--heading-xl-size);
     font-family: var(--heading-xl-family);
-    line-height: var(--heading-xl-lineheight);
     font-weight: var(--heading-xl-weight);
+    line-height: var(--heading-xl-lineheight);
   }
   .enki-heading-xl-strong {
     letter-spacing: var(--heading-xl-tracking);
@@ -152,8 +152,8 @@
     letter-spacing: var(--heading-2xl-tracking);
     font-size: var(--heading-2xl-size);
     font-family: var(--heading-2xl-family);
-    line-height: var(--heading-2xl-lineheight);
     font-weight: var(--heading-2xl-weight);
+    line-height: var(--heading-2xl-lineheight);
   }
   .enki-heading-2xl-strong {
     letter-spacing: var(--heading-2xl-tracking);
@@ -166,8 +166,8 @@
     letter-spacing: var(--heading-3xl-tracking);
     font-size: var(--heading-3xl-size);
     font-family: var(--heading-3xl-family);
-    line-height: var(--heading-3xl-lineheight);
     font-weight: var(--heading-3xl-weight);
+    line-height: var(--heading-3xl-lineheight);
   }
   .enki-heading-3xl-strong {
     letter-spacing: var(--heading-3xl-tracking);
@@ -180,8 +180,8 @@
     letter-spacing: var(--heading-4xl-tracking);
     font-size: var(--heading-4xl-size);
     font-family: var(--heading-4xl-family);
-    line-height: var(--heading-4xl-lineheight);
     font-weight: var(--heading-4xl-weight);
+    line-height: var(--heading-4xl-lineheight);
   }
   .enki-heading-4xl-strong {
     letter-spacing: var(--heading-4xl-tracking);
@@ -194,8 +194,8 @@
     letter-spacing: var(--heading-5xl-tracking);
     font-size: var(--heading-5xl-size);
     font-family: var(--heading-5xl-family);
-    line-height: var(--heading-5xl-lineheight);
     font-weight: var(--heading-5xl-weight);
+    line-height: var(--heading-5xl-lineheight);
   }
   .enki-heading-5xl-strong {
     letter-spacing: var(--heading-5xl-tracking);
@@ -210,8 +210,8 @@
     letter-spacing: var(--body-2xl-tracking);
     font-size: var(--body-2xl-size);
     font-family: var(--body-2xl-family);
-    line-height: var(--body-2xl-lineheight);
     font-weight: var(--body-2xl-weight);
+    line-height: var(--body-2xl-lineheight);
   }
   .enki-body-2xl-medium {
     letter-spacing: var(--body-2xl-tracking);
@@ -231,8 +231,8 @@
     letter-spacing: var(--body-xl-tracking);
     font-size: var(--body-xl-size);
     font-family: var(--body-xl-family);
-    line-height: var(--body-xl-lineheight);
     font-weight: var(--body-xl-weight);
+    line-height: var(--body-xl-lineheight);
   }
   .enki-body-xl-medium {
     letter-spacing: var(--body-xl-tracking);
@@ -252,8 +252,8 @@
     letter-spacing: var(--body-lg-tracking);
     font-size: var(--body-lg-size);
     font-family: var(--body-lg-family);
-    line-height: var(--body-lg-lineheight);
     font-weight: var(--body-lg-weight);
+    line-height: var(--body-lg-lineheight);
   }
   .enki-body-lg-medium {
     letter-spacing: var(--body-lg-tracking);
@@ -273,8 +273,8 @@
     letter-spacing: var(--body-base-tracking);
     font-size: var(--body-base-size);
     font-family: var(--body-base-family);
-    line-height: var(--body-base-lineheight);
     font-weight: var(--body-base-weight);
+    line-height: var(--body-base-lineheight);
   }
   .enki-body-base-medium {
     letter-spacing: var(--body-base-tracking);
@@ -294,8 +294,8 @@
     letter-spacing: var(--body-sm-tracking);
     font-size: var(--body-sm-size);
     font-family: var(--body-sm-family);
-    line-height: var(--body-sm-lineheight);
     font-weight: var(--body-sm-weight);
+    line-height: var(--body-sm-lineheight);
   }
   .enki-body-sm-medium {
     letter-spacing: var(--body-sm-tracking);
@@ -315,8 +315,8 @@
     letter-spacing: var(--body-xs-tracking);
     font-size: var(--body-xs-size);
     font-family: var(--body-xs-family);
-    line-height: var(--body-xs-lineheight);
     font-weight: var(--body-xs-weight);
+    line-height: var(--body-xs-lineheight);
   }
   .enki-body-xs-medium {
     letter-spacing: var(--body-xs-tracking);
@@ -336,8 +336,8 @@
     letter-spacing: var(--body-2xs-tracking);
     font-size: var(--body-2xs-size);
     font-family: var(--body-2xs-family);
-    line-height: var(--body-2xs-lineheight);
     font-weight: var(--body-2xs-weight);
+    line-height: var(--body-2xs-lineheight);
   }
   .enki-body-2xs-medium {
     letter-spacing: var(--body-2xs-tracking);
@@ -357,8 +357,8 @@
     letter-spacing: var(--body-3xs-tracking);
     font-size: var(--body-3xs-size);
     font-family: var(--body-3xs-family);
-    line-height: var(--body-3xs-lineheight);
     font-weight: var(--body-3xs-weight);
+    line-height: var(--body-3xs-lineheight);
   }
   .enki-body-3xs-medium {
     letter-spacing: var(--body-3xs-tracking);
