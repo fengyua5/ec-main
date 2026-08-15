@@ -1,34 +1,23 @@
-import { createApiClient, getHomeModules, getHomeBanner, getHomeAnnouncements, getPublicProducts, type HomeModule } from "@ec/sdk";
-import { HomeModuleRenderer, type ModulePayloads } from "./components/home-module-renderer";
+import { createApiClient, getHomeModules, type HomeModule } from "@ec/sdk";
+import { HomeModuleRenderer } from "./components/home-module-renderer";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-async function loadHomeData(): Promise<{ modules: HomeModule[]; staticData: Partial<ModulePayloads> } | null> {
+async function loadHomeData(): Promise<{ modules: HomeModule[]; staticData: Record<number, unknown> } | null> {
   try {
     const client = createApiClient({ baseUrl: apiBaseUrl });
     const { modules } = await getHomeModules(client);
 
-    const staticData: Partial<ModulePayloads> = {};
-    const types = new Set(modules.filter((m) => m.is_static && m.data_source_url).map((m) => m.module_type));
+    const staticData: Record<number, unknown> = {};
+    const staticModules = modules.filter((m) => m.is_static && m.data_source_url);
 
-    const promises: Promise<void>[] = [];
-    if (types.has("banner")) {
-      promises.push(
-        getHomeBanner(client).then((res) => { staticData.banner = res.items; }),
-      );
-    }
-    if (types.has("product_recommend")) {
-      promises.push(
-        getPublicProducts(client, { status: "active" }).then((res) => { staticData.product_recommend = res.items; }),
-      );
-    }
-    if (types.has("announcement")) {
-      promises.push(
-        getHomeAnnouncements(client).then((res) => { staticData.announcement = res.items; }),
-      );
-    }
+    await Promise.all(
+      staticModules.map(async (m) => {
+        const data = await client.request<unknown>(m.data_source_url);
+        staticData[m.id] = data;
+      }),
+    );
 
-    await Promise.all(promises);
     return { modules, staticData };
   } catch {
     return null;
@@ -39,8 +28,8 @@ export default async function HomePage() {
   const result = await loadHomeData();
 
   return (
-    <div className="min-h-screen bg-surface-200-bg text-surface-100-fg-default">
-      <main className="mx-auto flex max-w-5xl flex-col gap-8">
+    <div className="min-h-screen bg-surface-100-bg text-surface-100-fg-default">
+      <main className="mx-auto flex max-w-5xl flex-col">
         {result ? (
           <HomeModuleRenderer modules={result.modules} staticData={result.staticData} />
         ) : (

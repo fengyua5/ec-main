@@ -16,7 +16,7 @@ export default function AIChatPage() {
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col">
-      <div className="border-b px-4 py-3 text-center font-semibold shrink-0">
+      <div className="border-b px-4 py-3 text-center font-semibold shrink-0 sticky top-0 bg-surface-100-bg z-10">
         AI 智能客服
       </div>
       <ChatList

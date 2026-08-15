@@ -1,14 +1,14 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
-import { HomeModuleRenderer, type ModulePayloads } from "@/app/(main)/components/home-module-renderer";
+import { HomeModuleRenderer } from "@/app/(main)/components/home-module-renderer";
 import type { HomeModule } from "@ec/sdk";
 
 afterEach(cleanup);
 
-const staticData: Partial<ModulePayloads> = {
-  banner: [{ id: 1, image_url: "https://example.com/banner.jpg", description: "", link_url: "/p" }],
-  product_recommend: [{ id: 1, title: "商品1", image_url: "", price: 9900 }],
-  announcement: [{ id: 1, content: "公告1" }],
+const staticData: Record<number, unknown> = {
+  1: { items: [{ id: 1, image_url: "https://example.com/banner.jpg", description: "", link_url: "/p" }] },
+  2: { items: [{ id: 1, title: "商品1", image_url: "", price: 9900 }] },
+  3: { items: [{ id: 1, content: "公告1" }] },
 };
 
 describe("HomeModuleRenderer", () => {

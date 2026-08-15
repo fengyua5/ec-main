@@ -1,6 +1,6 @@
 export function CmsSearchBar() {
   return (
-    <div className="sticky top-0 z-10 bg-surface-200-bg">
+    <div className="sticky top-0 z-10 px-3 pt-3 bg-surface-100-bg">
       <div className="relative">
         <input
           type="text"
