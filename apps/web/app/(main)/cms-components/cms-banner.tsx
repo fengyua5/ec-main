@@ -9,16 +9,16 @@ export function CmsBanner({ items }: Props) {
   return (
     <Slider
       items={items}
-      options={{ loop: true }}
-      autoPlay
+      options={{ loop: true, slides: { perView: 1.15, spacing: 12 } }}
       showDots
-      className="mx-3 mt-3 overflow-hidden rounded-2xl"
+      className="mt-3 overflow-hidden"
+      slideClassName="first:ml-3 last:mr-3"
       renderSlide={(item) => {
         const img = (
           <img
             src={item.image_url}
             alt={item.description || "banner"}
-            className="h-48 w-full object-cover"
+            className="h-48 w-full object-cover rounded-2xl"
           />
         );
         return item.link_url ? (

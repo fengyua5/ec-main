@@ -102,22 +102,18 @@ def seed_cms(db: Session) -> None:
     if db.query(BannerItem).count() > 0:
         logger.info("种子数据: banner_items 已有记录，跳过")
     else:
-        db.add(BannerItem(
-            image_url="https://placehold.co/800x300?text=Banner+1",
-            description="首屏主推活动",
-            link_url="https://example.com/1",
-            sort_order=1,
-            is_enabled=True,
-        ))
-        db.add(BannerItem(
-            image_url="https://placehold.co/800x300?text=Banner+2",
-            description="限时特惠专场",
-            link_url="https://example.com/2",
-            sort_order=2,
-            is_enabled=True,
-        ))
+        banners = [
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+1", description="首屏主推活动", link_url="https://example.com/1", sort_order=1, is_enabled=True),
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+2", description="限时特惠专场", link_url="https://example.com/2", sort_order=2, is_enabled=True),
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+3", description="品牌新品首发", link_url="https://example.com/3", sort_order=3, is_enabled=True),
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+4", description="会员专享折扣", link_url="https://example.com/4", sort_order=4, is_enabled=True),
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+5", description="积分兑换好礼", link_url="https://example.com/5", sort_order=5, is_enabled=True),
+            BannerItem(image_url="https://placehold.co/800x300?text=Banner+6", description="夏日狂欢大促", link_url="https://example.com/6", sort_order=6, is_enabled=True),
+        ]
+        for b in banners:
+            db.add(b)
         db.commit()
-        logger.info("种子数据: 已创建 2 条 Banner")
+        logger.info("种子数据: 已创建 6 条 Banner")
 
     if db.query(Announcement).count() > 0:
         logger.info("种子数据: announcements 已有记录，跳过")
