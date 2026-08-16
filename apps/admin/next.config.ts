@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@ec/sdk"],
+  transpilePackages: ["@ec/sdk", "@ec/ui"],
   async rewrites() {
     return [
       {

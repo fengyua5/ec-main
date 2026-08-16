@@ -25,8 +25,8 @@ describe("DynamicCmsModule", () => {
 
     render(<DynamicCmsModule module={dynamicBanner} />);
 
-    await screen.findByAltText("banner-0");
-    expect(screen.getByAltText("banner-0")).toBeInTheDocument();
+    await screen.findByAltText("banner");
+    expect(screen.getByAltText("banner")).toBeInTheDocument();
 
     vi.restoreAllMocks();
   });

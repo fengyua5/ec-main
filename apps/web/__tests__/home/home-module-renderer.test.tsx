@@ -17,7 +17,7 @@ describe("HomeModuleRenderer", () => {
       { id: 1, module_type: "banner", title: "轮播", description: "", data_source_url: "/api/v1/web/home/banner", is_static: true, sort_order: 1 },
     ];
     render(<HomeModuleRenderer modules={modules} staticData={staticData} />);
-    expect(screen.getByAltText("banner-0")).toBeInTheDocument();
+    expect(screen.getByAltText("banner")).toBeInTheDocument();
   });
 
   it("renders static product grid module", () => {
