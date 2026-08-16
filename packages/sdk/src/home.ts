@@ -1,6 +1,6 @@
 import type { ApiClient } from "./client";
 
-export type ModuleType = "banner" | "product_recommend" | "announcement" | "search_bar";
+export type ModuleType = "banner" | "product_recommend" | "product_list" | "announcement" | "search_bar";
 
 export type HomeModule = {
   id: number;

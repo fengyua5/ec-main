@@ -1,5 +1,5 @@
 import type { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
-import { CmsBanner, CmsProductGrid, CmsAnnouncement, CmsSearchBar } from "../cms-components";
+import { CmsBanner, CmsProductWaterfall, CmsProductList, CmsAnnouncement, CmsSearchBar } from "../cms-components";
 import { DynamicCmsModule } from "./dynamic-cms-module";
 
 type Props = {
@@ -16,7 +16,9 @@ export function HomeModuleRenderer({ modules, staticData }: Props) {
             case "banner":
               return <CmsBanner key={module.id} items={(staticData[module.id] as { items: BannerItem[] } | undefined)?.items ?? []} />;
             case "product_recommend":
-              return <CmsProductGrid key={module.id} items={(staticData[module.id] as { items: Product[] } | undefined)?.items ?? []} />;
+              return <CmsProductWaterfall key={module.id} title={module.title} items={(staticData[module.id] as { items: Product[] } | undefined)?.items ?? []} />;
+            case "product_list":
+              return <CmsProductList key={module.id} title={module.title} items={(staticData[module.id] as { items: Product[] } | undefined)?.items ?? []} />;
             case "announcement":
               return <CmsAnnouncement key={module.id} items={(staticData[module.id] as { items: Announcement[] } | undefined)?.items ?? []} />;
             case "search_bar":

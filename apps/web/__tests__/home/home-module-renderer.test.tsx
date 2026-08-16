@@ -20,12 +20,21 @@ describe("HomeModuleRenderer", () => {
     expect(screen.getByAltText("banner")).toBeInTheDocument();
   });
 
-  it("renders static product grid module", () => {
+  it("renders static product waterfall module", () => {
     const modules: HomeModule[] = [
       { id: 2, module_type: "product_recommend", title: "商品推荐", description: "", data_source_url: "/api/v1/web/home/products", is_static: true, sort_order: 1 },
     ];
     render(<HomeModuleRenderer modules={modules} staticData={staticData} />);
     expect(screen.getByText("商品1")).toBeInTheDocument();
+  });
+
+  it("renders static product list module", () => {
+    const modules: HomeModule[] = [
+      { id: 4, module_type: "product_list", title: "横向推荐", description: "", data_source_url: "/api/v1/web/home/products", is_static: true, sort_order: 2 },
+    ];
+    const data = { ...staticData, 4: { items: [{ id: 1, title: "商品列表", image_url: "", price: 9900 }] } };
+    render(<HomeModuleRenderer modules={modules} staticData={data} />);
+    expect(screen.getByText("商品列表")).toBeInTheDocument();
   });
 
   it("renders static announcement module", () => {

@@ -96,8 +96,16 @@ def seed_cms(db: Session) -> None:
             sort_order=0,
             is_enabled=True,
         ))
+        db.add(HomeModule(
+            module_type="product_list",
+            title="横向推荐",
+            description="商品横向滑动推荐",
+            data_source_url="/api/v1/web/home/products?status=active",
+            sort_order=3,
+            is_enabled=True,
+        ))
         db.commit()
-        logger.info("种子数据: 已创建 3 个首页模块")
+        logger.info("种子数据: 已创建 5 个首页模块")
 
     if db.query(BannerItem).count() > 0:
         logger.info("种子数据: banner_items 已有记录，跳过")

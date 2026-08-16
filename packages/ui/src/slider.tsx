@@ -15,6 +15,7 @@ export type SliderProps<T> = {
   showArrows?: boolean;
   className?: string;
   slideClassName?: string;
+  wrapperClassName?: string;
 };
 
 export function Slider<T>({
@@ -26,6 +27,7 @@ export function Slider<T>({
   showArrows = false,
   className,
   slideClassName,
+  wrapperClassName,
 }: SliderProps<T>) {
   const interval = typeof autoPlay === "object" ? autoPlay.interval : 4000;
   const [current, setCurrent] = useState(0);
@@ -64,7 +66,7 @@ export function Slider<T>({
 
   return (
     <div className={clsx("relative", className)}>
-      <div ref={sliderRef} className="keen-slider">
+      <div ref={sliderRef} className={clsx("keen-slider", wrapperClassName)}>
         {items.map((item, index) => (
           <div key={index} className={clsx("keen-slider__slide", slideClassName)}>
             {renderSlide(item, index)}

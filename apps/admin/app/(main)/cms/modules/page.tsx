@@ -22,7 +22,8 @@ const client = createApiClient({
 
 const MODULE_TYPE_LABELS: Record<string, string> = {
   banner: "Banner 轮播",
-  product_recommend: "推荐商品",
+  product_recommend: "推荐商品(瀑布流)",
+  product_list: "推荐商品(横向滑动)",
   announcement: "平台公告",
   search_bar: "搜索栏",
 };
@@ -30,6 +31,7 @@ const MODULE_TYPE_LABELS: Record<string, string> = {
 const DEFAULT_URLS: Record<string, string> = {
   banner: "/api/v1/web/home/banner",
   product_recommend: "/api/v1/web/home/products?status=active",
+  product_list: "/api/v1/web/home/products?status=active",
   announcement: "/api/v1/web/home/announcement",
   search_bar: "",
 };
@@ -252,13 +254,13 @@ export default function ModulesPage() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {modules.map((module) => (
+            {modules.map((module, index) => (
               <tr key={module.id} className="hover:bg-muted/30">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleMove(module.id, "up")}
-                      disabled={module.sort_order === 0}
+                      disabled={index === 0}
                       className="text-muted-foreground hover:text-foreground disabled:opacity-40"
                       aria-label="上移"
                     >
@@ -266,7 +268,8 @@ export default function ModulesPage() {
                     </button>
                     <button
                       onClick={() => handleMove(module.id, "down")}
-                      className="text-muted-foreground hover:text-foreground"
+                      disabled={index === modules.length - 1}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-40"
                       aria-label="下移"
                     >
                       <ArrowDown className="size-4" />

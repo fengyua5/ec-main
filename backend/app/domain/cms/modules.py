@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.home_module import HomeModule
 
-MODULE_TYPES = ["banner", "product_recommend", "announcement", "search_bar"]
+MODULE_TYPES = ["banner", "product_recommend", "product_list", "announcement", "search_bar"]
 
 
 def list_modules(db: Session) -> list[HomeModule]:
@@ -82,9 +82,10 @@ def move_module(db: Session, module_id: int, direction: str, modules: list[HomeM
     target = index - 1 if direction == "up" else index + 1
     if target < 0 or target >= len(ordered):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="已在边界,无法移动")
-    current = ordered[index]
-    neighbor = ordered[target]
-    current.sort_order, neighbor.sort_order = neighbor.sort_order, current.sort_order
+    current = ordered.pop(index)
+    ordered.insert(target, current)
+    for position, module in enumerate(ordered):
+        module.sort_order = position
     db.commit()
     db.refresh(current)
     return current

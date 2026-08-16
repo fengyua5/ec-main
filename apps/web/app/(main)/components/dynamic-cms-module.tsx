@@ -3,7 +3,7 @@
 import type { HomeModule, BannerItem, Product, Announcement } from "@ec/sdk";
 import { Loader2 } from "lucide-react";
 import { useCMS } from "../hooks/use-cms";
-import { CmsBanner, CmsProductGrid, CmsAnnouncement, CmsSearchBar } from "../cms-components";
+import { CmsBanner, CmsProductWaterfall, CmsProductList, CmsAnnouncement, CmsSearchBar } from "../cms-components";
 
 type Props = { module: HomeModule };
 
@@ -26,7 +26,9 @@ export function DynamicCmsModule({ module }: Props) {
     case "banner":
       return <CmsBanner items={(data as { items: BannerItem[] } | null)?.items ?? []} />;
     case "product_recommend":
-      return <CmsProductGrid items={(data as { items: Product[] } | null)?.items ?? []} />;
+      return <CmsProductWaterfall title={module.title} items={(data as { items: Product[] } | null)?.items ?? []} />;
+    case "product_list":
+      return <CmsProductList title={module.title} items={(data as { items: Product[] } | null)?.items ?? []} />;
     case "announcement":
       return <CmsAnnouncement items={(data as { items: Announcement[] } | null)?.items ?? []} />;
     case "search_bar":

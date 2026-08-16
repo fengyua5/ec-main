@@ -1,6 +1,6 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
-import { CmsProductGrid, formatPrice } from "@/app/(main)/cms-components/cms-product-grid";
+import { CmsProductWaterfall, formatPrice } from "@/app/(main)/cms-components/cms-product-waterfall";
 
 afterEach(cleanup);
 
@@ -11,15 +11,15 @@ describe("formatPrice", () => {
   });
 });
 
-describe("CmsProductGrid", () => {
+describe("CmsProductWaterfall", () => {
   it("renders nothing when empty", () => {
-    const { container } = render(<CmsProductGrid items={[]} />);
+    const { container } = render(<CmsProductWaterfall items={[]} />);
     expect(container.innerHTML).toBe("");
   });
 
   it("renders product titles and prices", () => {
     render(
-      <CmsProductGrid
+      <CmsProductWaterfall
         items={[
           { id: 1, title: "商品1", image_url: "", price: 9900 },
           { id: 2, title: "商品2", image_url: "", price: 12900 },

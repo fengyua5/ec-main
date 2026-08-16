@@ -11,7 +11,7 @@ export function CmsBanner({ items }: Props) {
       items={items}
       options={{ loop: true, slides: { perView: 1.15, spacing: 12 } }}
       showDots
-      className="mt-3 overflow-hidden"
+      className="mt-3 overflow-hidden pb-3"
       slideClassName="first:ml-3 last:mr-3"
       renderSlide={(item) => {
         const img = (
