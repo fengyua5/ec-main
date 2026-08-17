@@ -48,17 +48,17 @@ AI 自动识别用户意图并加载对应规范，**用户无需手动选择**�
 ### 识别规则
 
 ```
-1. 用户描述包含「bug」「坏了」「不显示」「报错」等 + 涉及已有功能
-   → 自动判定为 Bug 修复场景（fe-bugfix / be-bugfix / comet-hotfix）
+1. 用户描述包含「改文案」「调整样式」「修改配置」「优化 prompt」等小改动
+   → 自动判定为 Tweak 场景（comet-tweak）→ 只加载 1-2 个相关规范
 
-2. 用户描述包含「小改动」「调整文案」「修改配置」「优化 prompt」等
-   → 自动判定为 Tweak 场景（comet-tweak）
+2. 用户描述包含「bug」「坏了」「不显示」「报错」等 + 涉及已有功能
+   → 自动判定为 Bug 修复场景 → 加载全部核心规范
 
 3. 用户描述包含「新功能」「实现」「开发」「添加」等
-   → 自动判定为开发场景（fe-dev / be-dev / comet）
+   → 自动判定为开发场景 → 加载全部核心规范 + 条件规范
 
 4. 无法判断时
-   → 询问：「这是新功能开发还是 Bug 修复？」
+   → 询问：「这是新功能开发、Bug 修复还是小改动？」
 ```
 
 ### 技术栈判断
@@ -71,7 +71,7 @@ AI 自动识别用户意图并加载对应规范，**用户无需手动选择**�
 
 ### 规范加载规则
 
-#### 核心规范（每次开发场景加载）
+#### 核心规范（dev/bugfix 场景必加载）
 
 这些规则影响所有代码，必须始终遵守：
 
@@ -89,6 +89,14 @@ AI 自动识别用户意图并加载对应规范，**用户无需手动选择**�
 | 新建 API 接口 | `@docs/conventions/backend/api-responses.md` |
 | 涉及依赖注入 | `@docs/conventions/backend/dependency-injection.md` |
 | 需要写测试 | `@docs/conventions/frontend/testing.md` 或 `@docs/conventions/backend/testing.md` |
+
+#### Tweak 规范（小改动按需加载）
+
+| 任务类型 | 加载规范 |
+|---------|---------|
+| 改文案/文字 | `components.md`（前端）或 `layering.md`（后端） |
+| 改样式 | `styling.md` |
+| 改配置 | 不加载 |
 
 > **跨领域规范**（`docs/cross-domain/`）不在启动时加载，按需要在执行过程中引用：
 > - `code-review.md` — PR/合并前 review 时
