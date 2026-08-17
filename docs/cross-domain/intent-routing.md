@@ -50,12 +50,12 @@
 
 **路由结果**：
 
-| 目标模块 | 场景 | 规范切片 |
-|---------|------|---------|
-| 前端 | `/fe-dev` | `data-fetching.md` + `api-client.md` + `components.md` + `styling.md` + `error-loading-form.md` + `directory-structure.md` + `testing.md` |
-| 后端 | `/be-dev` | `layering.md` + `models.md` + `schemas.md` + `errors.md` + `api-responses.md` + `security.md` + `dependency-injection.md` + `testing.md` |
-| 跨域/大型 | `/comet` | 完整五阶段流程 |
-| 不确定 | 询问用户 | — |
+| 目标模块 | 场景 |
+|---------|------|
+| 前端 | 加载「前端核心规范」 |
+| 后端 | 加载「后端核心规范」 |
+| 跨域/大型 | `/comet` 完整五阶段流程 |
+| 不确定 | 询问用户 |
 
 ---
 
@@ -98,10 +98,8 @@ JWT、认证、权限、MCP、FastAPI、session、事务
 
 | 场景 | 规范 |
 |------|------|
-| 前端开发 | `data-fetching.md` + `api-client.md` + `components.md` + `styling.md` + `error-loading-form.md` |
-| 前端 Bug 修复 | `debugging.md` + `testing.md` |
-| 后端开发 | `layering.md` + `models.md` + `schemas.md` + `errors.md` + `security.md` |
-| 后端 Bug 修复 | `debugging.md` + `testing.md` |
+| **前端（统一）** | `data-fetching.md` + `api-client.md` + `components.md` + `styling.md`<br>`+ error-loading-form.md` + `debugging.md` |
+| **后端（统一）** | `layering.md` + `models.md` + `schemas.md` + `errors.md`<br>`+ security.md` + `debugging.md` |
 | **跨域开发** | **前端核心 + 后端核心全部加载** |
 
 ### 条件规范（按任务类型追加）

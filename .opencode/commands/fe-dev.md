@@ -1,5 +1,5 @@
 ---
-description: 按前端开发规范完成前端页面/组件开发
+description: 按前端开发规范完成前端页面/组件开发或 Bug 修复
 ---
 
 按本项目前端规范完成任务: $ARGUMENTS
@@ -11,6 +11,7 @@ description: 按前端开发规范完成前端页面/组件开发
 @docs/conventions/frontend/components.md
 @docs/conventions/frontend/styling.md
 @docs/conventions/frontend/error-loading-form.md
+@docs/conventions/frontend/debugging.md
 
 如任务涉及新建目录结构，追加加载:
 

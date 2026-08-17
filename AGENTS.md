@@ -77,10 +77,8 @@ AI 自动识别用户意图并加载对应规范，**用户无需手动选择**�
 
 | 场景 | 规范 |
 |------|------|
-| 前端开发 | `@docs/conventions/frontend/data-fetching.md`<br>`@docs/conventions/frontend/api-client.md`<br>`@docs/conventions/frontend/components.md`<br>`@docs/conventions/frontend/styling.md`<br>`@docs/conventions/frontend/error-loading-form.md` |
-| 前端 Bug 修复 | `@docs/conventions/frontend/debugging.md`<br>`@docs/conventions/frontend/testing.md` |
-| 后端开发 | `@docs/conventions/backend/layering.md`<br>`@docs/conventions/backend/models.md`<br>`@docs/conventions/backend/schemas.md`<br>`@docs/conventions/backend/errors.md`<br>`@docs/conventions/backend/security.md` |
-| 后端 Bug 修复 | `@docs/conventions/backend/debugging.md`<br>`@docs/conventions/backend/testing.md` |
+| **前端（统一）** | `@docs/conventions/frontend/data-fetching.md`<br>`@docs/conventions/frontend/api-client.md`<br>`@docs/conventions/frontend/components.md`<br>`@docs/conventions/frontend/styling.md`<br>`@docs/conventions/frontend/error-loading-form.md`<br>`@docs/conventions/frontend/debugging.md` |
+| **后端（统一）** | `@docs/conventions/backend/layering.md`<br>`@docs/conventions/backend/models.md`<br>`@docs/conventions/backend/schemas.md`<br>`@docs/conventions/backend/errors.md`<br>`@docs/conventions/backend/security.md`<br>`@docs/conventions/backend/debugging.md` |
 | **跨域开发** | **前端核心 + 后端核心全部加载** |
 
 #### 条件规范（按任务类型追加加载）

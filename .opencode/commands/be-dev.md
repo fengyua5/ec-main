@@ -1,5 +1,5 @@
 ---
-description: 按后端开发规范完成后端接口/领域开发
+description: 按后端开发规范完成后端接口/领域开发或 Bug 修复
 ---
 
 按本项目后端规范完成任务: $ARGUMENTS
@@ -11,6 +11,7 @@ description: 按后端开发规范完成后端接口/领域开发
 @docs/conventions/backend/schemas.md
 @docs/conventions/backend/errors.md
 @docs/conventions/backend/security.md
+@docs/conventions/backend/debugging.md
 
 如任务涉及新建 API 接口，追加加载:
 
