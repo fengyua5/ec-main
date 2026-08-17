@@ -9,17 +9,19 @@ type Props = {
 };
 
 export function CmsProductList({ title, items }: Props) {
-  if (items.length === 0) return null;
+  const length = items.length;
+  if (length === 0) return null;
   return (
     <div className="mb-3">
       {title && <CmsTitle title={title} />}
       <Slider
         items={items}
-        options={{ slides: { spacing: 12, perView: 2.2 } }}
+        options={{ slides: { spacing: 12, perView: 'auto' } }}
         className="overflow-hidden pt-3"
-        slideClassName="first:ml-3 last:mr-3"
+        slideClassName="!w-auto flex-shrink-0"
+        wrapperClassName="flex px-3"
         renderSlide={(product) => (
-          <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-surface-100-bg">
+          <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-surface-100-bg w-[144px]">
             <img
               src={product.image_url}
               alt={product.title}
